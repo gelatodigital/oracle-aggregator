@@ -1,0 +1,31 @@
+{
+  "name": "gelato-oracle-aggregator",
+  "version": "1.0.0",
+  "description": "Common interface to get token prices via oracles",
+  "repository": "https://github.com/gelatodigital/gelato-oracle-aggregator",
+  "author": "hilmarx",
+  "private": false,
+  "scripts": {
+    "rebase": "HUSKY_SKIP_HOOKS=1 git rebase",
+    "compile": "npx hardhat compile",
+    "format": "prettier --write .",
+    "lint": "eslint --cache . && yarn lint:sol",
+    "lint:sol": "solhint 'contracts/**/*.sol'",
+    "lint:fix": "eslint --cache --fix . && solhint --fix contracts/**/*.sol",
+    "test": "npx hardhat test",
+    "debug": "DEBUG=true yarn compile && npx hardhat test"
+  },
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-waffle": "^2.0.0",
+    "dotenv": "^8.2.0",
+    "ethers": "^5.0.19",
+    "hardhat": "^2.0.3",
+    "hardhat-deploy": "^0.7.0-beta.28",
+    "hardhat-deploy-ethers": "^0.3.0-beta.5",
+    "prettier": "^2.1.2",
+    "prettier-plugin-solidity": "^1.0.0-alpha.60",
+    "solhint": "^3.3.2",
+    "solhint-plugin-prettier": "^0.0.5"
+  }
+}
