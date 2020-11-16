@@ -12,7 +12,6 @@ contract GelatoOracleAggregator is Ownable{
     mapping (string => mapping(string => uint)) public tokenPairPrice;
     mapping (string => mapping(string => uint)) public tokenPairDecimals;
 
-    // mapping (string => mapping(string => AggregatorV3Interface)) internal tokenAggregator;
     mapping (string => mapping(string => address)) public tokenPairAddress;
 
     AggregatorV3Interface internal priceFeed;
