@@ -1,7 +1,7 @@
 const { ethers } = require('hardhat');
 const readline = require("readline");
 const { expect } = require("chai");
-
+const GelatoOracleAggregatorJSON = require('../artifacts/contracts/GelatoOracleAggregator.sol/GelatoOracleAggregator.json');
 
 
 const rl = readline.createInterface({
@@ -9,62 +9,162 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
+function roundToTwo(num) {    
+    return +(Math.round(num + "e+2")  + "e-2");
+}
+
+
 describe('GelatoOracleAggregator TEST', async function(){
     var contract;
-    var tokenPairPrice_new;
+    const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+    const USD_ADDRESS = '0x7354C81fbCb229187480c4f497F945C6A312d5C3';
+    const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    const KNC_ADDRESS = '0xdd974D5C2e2928deA5F71b9825b8b646686BD200';
+    const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
+    const WBTC_ADDRESS = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
+    const SXP_ADDRESS = '0x8CE9137d39326AD0cD6491fb5CC0CbA0e089b6A9';
 
     this.timeout(0);
 
 
     before(async function(){
-        const [deployer] = await ethers.getSigners();
-         
+        [deployer, user] = await ethers.getSigners();
+
+       
         const GelatoOracleAggregator = await ethers.getContractFactory("GelatoOracleAggregator");
         contract = await GelatoOracleAggregator.deploy();
         console.log('❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆');
         console.log("🔵Contract address:", contract.address);
+    })
+    
+    it('should add new WBTC/USD token pair', async()=> {
+        await contract.addToken(WBTC_ADDRESS,USD_ADDRESS,'0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c');
+
+        const res = await contract.getExpectedReturnAmount(25, WBTC_ADDRESS, USD_ADDRESS);
+        const tx = await res.wait();
+        const events = await tx.events.pop();
+
+        const returnAmount = await parseInt(events.args.returnAmount);
+        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+
+        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
+        expect(returnAmount).to.not.be.null;
 
     })
 
-    it('should add new WOM/ETH token pair', async()=> {
-        await contract.addTokenPair("WOM","ETH",'0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46');
-        await contract.updateTokenPairPrice("WOM","ETH");
-
-        const wom_ethContract = await contract.tokenPairAddress("WOM","ETH");
-        expect(wom_ethContract).to.equal("0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46");
+    it('should be reverted when trying to add new WBTC/ETH token pair (not owner)', async()=> {
+        const contractSingner = contract.connect(user)
+        await expect(
+            contractSingner.addToken(WBTC_ADDRESS,ETH_ADDRESS,'0xdeb288F737066589598e9214E782fa5A8eD689e8')
+        ).to.be.reverted;
+        
     })
 
-    it('should update token pair price', async() => {
-        const tokenPairPrice_old = 0;
-        await contract.updateTokenPairPrice("ETH", "USD");
-        tokenPairPrice_new = await contract.tokenPairPrice("ETH", "USD");
-        expect(parseInt(tokenPairPrice_new)).to.be.greaterThan(tokenPairPrice_old);
+  
+    it('should be reverted when input has two same tokens', async() => {
+        await expect(
+            contract.getExpectedReturnAmount(25, KNC_ADDRESS, KNC_ADDRESS)
+        ).to.be.reverted;
     })
 
-    it('should get correct expected return rate', async() => {
-        const amount = 0.5;
-       
-        const returnRate = await contract.getExpectedReturnRate(amount * 100000 , "ETH", "USD");
-        const nrOfDecimals = parseInt(returnRate[1]) + 5
-        expect(parseInt(returnRate[0]) / Math.pow(10, nrOfDecimals) ).to.equal( 191.98 )
+    it('should be reverted when input has two usd tokens', async() => {
+        await expect(
+            contract.getExpectedReturnAmount(25, USD_ADDRESS, USDC_ADDRESS)
+        ).to.be.reverted;
     })
 
-    it('should revert the transaction for getExpectedReturnRate', async() => {
-        const amount = 0.5;
-       
-        await expect( contract.getExpectedReturnRate(amount , "ETH", "USD")).to.be.reverted;
+    it('should get expected return amount of KNC/ETH', async() => {
+        const res = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, ETH_ADDRESS);
+        const tx = await res.wait();
+        const events = await tx.events.pop();
 
+        const returnAmount = await parseInt(events.args.returnAmount);
+        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+
+        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
+        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
+        .to.be.equal
+        (0.05);
     })
 
+    it('should get expected return amount of UNI/USD', async() => {
+        const res = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, USD_ADDRESS);
+        const tx = await res.wait();
+        const events = await tx.events.pop();
 
+        const returnAmount = await parseInt(events.args.returnAmount);
+        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+
+        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
+        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
+        .to.be.equal
+        (53.61);
+    })
+
+    it('should get expected return amount of KNC/UNI', async() => {
+        const res = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, UNI_ADDRESS);
+        const tx = await res.wait();
+        const events = await tx.events.pop();
+
+        const returnAmount = await parseInt(events.args.returnAmount);
+        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+
+        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
+        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
+        .to.be.equal
+        (8.60);
+    })
+
+    it('should get expected return amount of UNI/SXP', async() => {
+        const res = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, SXP_ADDRESS);
+        const tx = await res.wait();
+        const events = await tx.events.pop();
+
+        const returnAmount = await parseInt(events.args.returnAmount);
+        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+
+        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
+        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
+        .to.be.equal
+        (69.87);
+    })
+
+    it('should get expected return amount of SXP/UNI', async() => {
+        const res = await contract.getExpectedReturnAmount(25, SXP_ADDRESS, UNI_ADDRESS);
+        const tx = await res.wait();
+        const events = await tx.events.pop();
+
+        const returnAmount = await parseInt(events.args.returnAmount);
+        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+
+        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
+        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
+        .to.be.equal
+        (8.95);
+    })
+
+    it('should be reverted when input has invalid token address', async() => {
+        await expect( 
+            contract.getExpectedReturnAmount(1, '0x8CE9137d39326AD0cD6491fb5CC0CbA0e089b6A8', KNC_ADDRESS)
+        ).to.be.reverted
+    })
+
+   
 })
+
 
 describe('GelatoOracleAggregator DEMO', async function() {
 
     var contract;
     var amount; 
-    var token_A; 
-    var token_B;
+    var addressToken_A; 
+    var addressToken_B;
     var tokenPairPrice;
     const amount_tenToPower = 5;
 
@@ -85,18 +185,17 @@ describe('GelatoOracleAggregator DEMO', async function() {
 
    it('Get token amount and token tickers', function(done){
     console.log('\n')
-    console.log('🌟Calculate your return rate of tokenA/tokenB')
-    console.log('🌟See https://docs.chain.link/docs/ethereum-addresses#config for available token pairs');
-    console.log('🟥 Make sure to enter ticker in full caps e.g. BTC ');
+    console.log('🌟Calculate your return amount of tokenA/tokenB')
+    console.log('🟥 Make sure to enter checksum token address');
     console.log('🟥 AMOUNT SHOULD NOT HAVE MORE THAN 5 DECIMAL PLACES ','\n');
 
     rl.question("Amount: ", function(_amount) {
-        rl.question("Token A: ", function(tokenA) {
-            rl.question("Token B: ", function(tokenB) {
+        rl.question("Address of Token A: ", function(tokenA) {
+            rl.question("Address of Token B: ", function(tokenB) {
             console.log(`
             Amount: ${_amount}
-            TokenA: ${tokenA}
-            TokenB: ${tokenB}
+            Address of TokenA: ${tokenA}
+            Address of TokenB: ${tokenB}
             `);
 
             if(_amount < 0.00001 || tokenA === ""|| tokenB === ""){
@@ -105,8 +204,8 @@ describe('GelatoOracleAggregator DEMO', async function() {
             }
 
             amount =  _amount * Math.pow(10, amount_tenToPower);
-            token_A =  tokenA;
-            token_B =  tokenB; 
+            addressToken_A =  tokenA;
+            addressToken_B =  tokenB; 
 
             done();
             });
@@ -116,35 +215,30 @@ describe('GelatoOracleAggregator DEMO', async function() {
 
    })
 
-    it('Get token prices from oracles', async() => {
-       
-        try{
-            console.log('🌟Getting new prices from oracle...');
-            await contract.updateTokenPairPrice(token_A, token_B);
-            tokenPairPrice = await contract.tokenPairPrice(token_A, token_B);
-        }
-        catch(err){
+    it('Get return amount between token pairs', async() => {
+
+        
+        try{ 
+            var res = await contract.getExpectedReturnAmount(amount, addressToken_A, addressToken_B);
+            var tx = await res.wait();
+            var events = await tx.events.pop();
+
+            const _returnAmount = await parseInt(events.args.returnAmount);
+            const _nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+
+            var nrOfDecimals = _nrOfDecimals + amount_tenToPower;
+            var returnAmount = _returnAmount / (Math.pow(10, nrOfDecimals));        
+                
+            console.log(`🌟Return Amount of tokenA/tokenB with an amount of ${amount/Math.pow(10,amount_tenToPower)}: `  + returnAmount);
+        } catch(err) {
             console.log('🟥',err.message);
             process.exit(1);
         }
 
-        // console.log(`${token_A} / ${token_B}: `+tokenPairPrice.toString());
-    })
-
-    it('Get return rate between token pairs', async() => {
-
-        
-        const res = await contract.getExpectedReturnRate(amount, token_A, token_B);
-
-        var nrOfDecimals = parseInt(res[1].toString()) + amount_tenToPower;
-        var returnRate = res[0] / (Math.pow(10, nrOfDecimals));
-
-        console.log(`🌟Current price of token pair ${token_A}/${token_B}: ${tokenPairPrice/ Math.pow(10, res[1])}`);
-        
-            
-        console.log(`🌟Return rate of ${token_A}/${token_B} with an amount of ${amount/Math.pow(10,amount_tenToPower)}: `  + returnRate.toString());
     })
 
   
 })
+
+
 
