@@ -19,8 +19,6 @@ assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 const DEPLOYER = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424"; //
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
 
-const INFURA_PROJECT_ID = "077b5d3032e54de1af44ffeb7936230d";
-const KOVAN_PRIVATE_KEY = "ff628d9ffd54b2cf26bb424a73c226fc69637a3c5c36ed60b47ed29a380d44fe";
 
 
 /**
@@ -52,13 +50,7 @@ module.exports = {
       chainId: 1,
       url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
       gasPrice: parseInt(utils.parseUnits("10", "gwei")),
-    },
-
-    kovan: {
-      url: `https://ropsten.infura.io/v3/${INFURA_PROJECT_ID}`,
-      accounts: [`0x${KOVAN_PRIVATE_KEY}`]
     }
-
     
   },
   solidity: {
