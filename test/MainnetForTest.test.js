@@ -15,7 +15,7 @@ function roundToTwo(num) {
 
 
 describe('GelatoOracleAggregator TEST', async function(){
-    var contract;
+    var contract, returnAmount, nrOfDecimals;
     const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
     const USD_ADDRESS = '0x7354C81fbCb229187480c4f497F945C6A312d5C3';
     const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -42,16 +42,7 @@ describe('GelatoOracleAggregator TEST', async function(){
 
   it("should get expected return amount of USDC/AAVE", async () => {
     const sellAmount = ethers.utils.parseUnits("1", "6");
-    var res = await contract.getExpectedReturnAmount(
-      sellAmount,
-      USDC_ADDRESS,
-      AAVE_ADDRESS
-    );
-    var tx = await res.wait();
-    var events = await tx.events.pop();
-
-    var returnAmount = await parseInt(events.args.returnAmount);
-    var nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, USDC_ADDRESS, AAVE_ADDRESS)
 
     console.log("returnAmount: ", returnAmount / Math.pow(10, nrOfDecimals));
 
@@ -94,13 +85,7 @@ describe('GelatoOracleAggregator TEST', async function(){
     
     it('should add new WBTC/USD token pair', async()=> {
         await contract.addToken(WBTC_ADDRESS,USD_ADDRESS,'0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c');
-
-        const res = await contract.getExpectedReturnAmount(25, WBTC_ADDRESS, USD_ADDRESS);
-        const tx = await res.wait();
-        const events = await tx.events.pop();
-
-        const returnAmount = await parseInt(events.args.returnAmount);
-        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(1, WBTC_ADDRESS, USD_ADDRESS)
 
         console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
 
@@ -130,12 +115,7 @@ describe('GelatoOracleAggregator TEST', async function(){
     })
 
     it('should get expected return amount of KNC/ETH', async() => {
-        const res = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, ETH_ADDRESS);
-        const tx = await res.wait();
-        const events = await tx.events.pop();
-
-        const returnAmount = await parseInt(events.args.returnAmount);
-        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, ETH_ADDRESS)
 
         console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
 
@@ -145,14 +125,10 @@ describe('GelatoOracleAggregator TEST', async function(){
     })
 
     it('should get expected return amount of UNI/USD', async() => {
-        const res = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, USD_ADDRESS);
-        const tx = await res.wait();
-        const events = await tx.events.pop();
-
-        const returnAmount = await parseInt(events.args.returnAmount);
-        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, USD_ADDRESS)
 
         console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
 
         expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
         .to.be.equal
@@ -160,12 +136,7 @@ describe('GelatoOracleAggregator TEST', async function(){
     })
 
     it('should get expected return amount of KNC/UNI', async() => {
-        const res = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, UNI_ADDRESS);
-        const tx = await res.wait();
-        const events = await tx.events.pop();
-
-        const returnAmount = await parseInt(events.args.returnAmount);
-        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, UNI_ADDRESS)
 
         console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
 
@@ -175,14 +146,10 @@ describe('GelatoOracleAggregator TEST', async function(){
     })
 
     it('should get expected return amount of UNI/SXP', async() => {
-        const res = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, SXP_ADDRESS);
-        const tx = await res.wait();
-        const events = await tx.events.pop();
-
-        const returnAmount = await parseInt(events.args.returnAmount);
-        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, SXP_ADDRESS)
 
         console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
 
         expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
         .to.be.equal
@@ -190,14 +157,10 @@ describe('GelatoOracleAggregator TEST', async function(){
     })
 
     it('should get expected return amount of SXP/UNI', async() => {
-        const res = await contract.getExpectedReturnAmount(25, SXP_ADDRESS, UNI_ADDRESS);
-        const tx = await res.wait();
-        const events = await tx.events.pop();
-
-        const returnAmount = await parseInt(events.args.returnAmount);
-        const nrOfDecimals = await parseInt(events.args.nrOfDecimals);
+        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, SXP_ADDRESS, UNI_ADDRESS)
 
         console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
+
 
         expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
         .to.be.equal

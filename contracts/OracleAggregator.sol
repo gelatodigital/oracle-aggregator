@@ -12,10 +12,6 @@ contract GelatoOracleAggregator is Ownable{
     mapping(address => mapping(address => address)) private tokenPairAddress;
     mapping(address => bool) private isUSD;
     
-    AggregatorV3Interface private priceFeed;
-
-    event ReturnAmount(uint returnAmount, uint nrOfDecimals);
-
     constructor()public{
         isUSD[0x7354C81fbCb229187480c4f497F945C6A312d5C3] = true; /// USD
         isUSD[0xdAC17F958D2ee523a2206206994597C13D831ec7] = true; /// USDT
@@ -98,6 +94,8 @@ contract GelatoOracleAggregator is Ownable{
         address tokenAddress_b
     ) 
         public 
+        view
+        returns (uint returnAmount, uint nrOfDecimals)
     {
         require(amount > 0);
         require(tokenAddress_a != tokenAddress_b, 'Cannot have two same tokens as input');
@@ -106,7 +104,6 @@ contract GelatoOracleAggregator is Ownable{
         uint returnRate_a;
         uint returnRate_b;
         uint nrOfDecimals_a;
-        uint returnAmount;
         address pair_a;
         address pair_b;
 
@@ -121,7 +118,7 @@ contract GelatoOracleAggregator is Ownable{
                 (returnRate_a, nrOfDecimals_a) = getRate(tokenAddress_a, tokenAddress_b);
                 returnAmount = amount * returnRate_a;
                 
-                emit ReturnAmount(returnAmount, nrOfDecimals_a);
+                return (returnAmount, nrOfDecimals_a);
 
             } else {
             /// oracle of token_a / token_b does not exist   
@@ -133,7 +130,7 @@ contract GelatoOracleAggregator is Ownable{
                 
                 returnAmount = amount * (returnRate_a * 10**nrOfDecimals_a) / returnRate_b;
 
-                emit ReturnAmount(returnAmount, nrOfDecimals_a);
+                return (returnAmount, nrOfDecimals_a);
 
             }
         } else {    
@@ -148,7 +145,7 @@ contract GelatoOracleAggregator is Ownable{
                 
                 returnAmount = amount * (returnRate_a * 10**nrOfDecimals_a) / returnRate_b;
 
-                emit ReturnAmount(returnAmount, nrOfDecimals_a);
+                return (returnAmount, nrOfDecimals_a);
                 
             } else if (pair_a == ETH_ADDRESS && pair_b == USD_ADDRESS) {
             /// oracle of token_a/ETH and token_b/USD exists
@@ -162,7 +159,7 @@ contract GelatoOracleAggregator is Ownable{
 
                 returnAmount = amount * returnRate_aUSD / returnRate_b;
                 
-                emit ReturnAmount(returnAmount, nrOfDecimals_a);
+                return (returnAmount, nrOfDecimals_a);
                 
             } else if (pair_a == USD_ADDRESS && pair_b == ETH_ADDRESS) {
              /// oracle of token_a/USD and token_b/ETH exists
@@ -176,8 +173,7 @@ contract GelatoOracleAggregator is Ownable{
                 
                 returnAmount = amount * returnRate_aETH / returnRate_b;
                 
-                emit ReturnAmount(returnAmount, nrOfDecimals_a);
-                
+                return (returnAmount, nrOfDecimals_a);
             }
         }
     }
@@ -208,7 +204,9 @@ contract GelatoOracleAggregator is Ownable{
         }   
     }
     
-    function getRate(address tokenAddress_a, address tokenAddress_b) private returns(uint, uint) {
+    function getRate(address tokenAddress_a, address tokenAddress_b) private view returns(uint, uint) {
+        AggregatorV3Interface priceFeed;
+
         priceFeed = AggregatorV3Interface(tokenPairAddress[tokenAddress_a][tokenAddress_b]);
 
         (
