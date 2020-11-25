@@ -10,16 +10,16 @@ contract GelatoOracleAggregator is Ownable{
     address private USD_ADDRESS;
 
     mapping(address => mapping(address => address)) private tokenPairAddress;
-    mapping(address => bool) private isUSD;
+      mapping(address => uint) private nrOfDecimals_usd;
     
     constructor()public{
-        isUSD[0x7354C81fbCb229187480c4f497F945C6A312d5C3] = true; /// USD
-        isUSD[0xdAC17F958D2ee523a2206206994597C13D831ec7] = true; /// USDT
-        isUSD[0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48] = true; /// USDC
-        isUSD[0x6B175474E89094C44Da98b954EedeAC495271d0F] = true; /// TUSD
-        isUSD[0x4Fabb145d64652a948d72533023f6E7A623C7C53] = true; /// BUSD
-        isUSD[0x57Ab1ec28D129707052df4dF418D58a2D46d5f51] = true; /// SUSD
-        isUSD[0x0000000000085d4780B73119b644AE5ecd22b376] = true; /// TUSD
+        nrOfDecimals_usd[0x7354C81fbCb229187480c4f497F945C6A312d5C3] = 8; /// USD
+        nrOfDecimals_usd[0xdAC17F958D2ee523a2206206994597C13D831ec7] = 6; /// USDT
+        nrOfDecimals_usd[0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48] = 6; /// USDC
+        nrOfDecimals_usd[0x6B175474E89094C44Da98b954EedeAC495271d0F] = 18; /// DAI
+        nrOfDecimals_usd[0x4Fabb145d64652a948d72533023f6E7A623C7C53] = 18; /// BUSD
+        nrOfDecimals_usd[0x57Ab1ec28D129707052df4dF418D58a2D46d5f51] = 18; /// SUSD
+        nrOfDecimals_usd[0x0000000000085d4780B73119b644AE5ecd22b376] = 18; /// TUSD
 
 
         ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
@@ -72,9 +72,6 @@ contract GelatoOracleAggregator is Ownable{
         tokenPairAddress[0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e][ETH_ADDRESS] = 0x7c5d4F8345e66f68099581Db340cd65B078C41f4; /// YFI/ETH
 
         tokenPairAddress[0xE41d2489571d322189246DaFA5ebDe1F4699F498][ETH_ADDRESS] = 0x2Da4983a622a8498bb1a21FaE9D8F6C664939962; /// ZRX/ETH
-
-        
-
     }
     
     function addToken(
@@ -98,39 +95,57 @@ contract GelatoOracleAggregator is Ownable{
         returns (uint returnAmount, uint nrOfDecimals)
     {
         require(amount > 0);
-        require(tokenAddress_a != tokenAddress_b, 'Cannot have two same tokens as input');
-        require((isUSD[tokenAddress_a] && isUSD[tokenAddress_b]) != true, 'Cannot have two USD tokens as input');
 
         uint returnRate_a;
         uint returnRate_b;
-        uint nrOfDecimals_a;
         address pair_a;
         address pair_b;
 
+        address stableCoinAddress = nrOfDecimals_usd[tokenAddress_b] > 0 ?
+        tokenAddress_b : 
+        address(0);
+
         (tokenAddress_a, tokenAddress_b) = convertUSD(tokenAddress_a, tokenAddress_b);
        
-       ///when token_b is ETH or USD
+       /// when token_b is ETH or USD
         if (tokenAddress_b == ETH_ADDRESS || tokenAddress_b == USD_ADDRESS) {
             /// oracle of token_a / token_b exists
             /// e.g. calculating KNC/ETH 
             /// KNC/ETH oracle available
             if (tokenPairAddress[tokenAddress_a][tokenAddress_b] != address(0)) {
-                (returnRate_a, nrOfDecimals_a) = getRate(tokenAddress_a, tokenAddress_b);
-                returnAmount = amount * returnRate_a;
+                (returnRate_a, nrOfDecimals) = getRate(tokenAddress_a, tokenAddress_b);
                 
-                return (returnAmount, nrOfDecimals_a);
+                
+                returnAmount = stableCoinAddress != address(0) ?
+                matchStableCoinDecimal(stableCoinAddress, amount, nrOfDecimals, 0, returnRate_a, 1) :
+                amount * returnRate_a;
+
+                nrOfDecimals = stableCoinAddress != address(0) ?
+                nrOfDecimals_usd[stableCoinAddress] :
+                nrOfDecimals;
+
+
+                return (returnAmount, nrOfDecimals);
 
             } else {
             /// oracle of token_a / token_b does not exist   
             /// e.g. calculating UNI/USD
             /// UNI/ETH and USD/ETH oracles available
                 (pair_a, pair_b) = checkAvailablePair(tokenAddress_a, tokenAddress_b);
-                (returnRate_a, nrOfDecimals_a) = getRate(tokenAddress_a, pair_a);
-                (returnRate_b, ) = getRate(tokenAddress_b, pair_b);
-                
-                returnAmount = amount * (returnRate_a * 10**nrOfDecimals_a) / returnRate_b;
+                (returnRate_a, ) = getRate(tokenAddress_a, pair_a);
+                (returnRate_b, nrOfDecimals) = getRate(tokenAddress_b, pair_b);
+                 
+                returnAmount = stableCoinAddress != address(0) ?
+                matchStableCoinDecimal(stableCoinAddress, amount, nrOfDecimals, nrOfDecimals, returnRate_a, returnRate_b) :
+                amount * (returnRate_a * 10**nrOfDecimals) / returnRate_b;
 
-                return (returnAmount, nrOfDecimals_a);
+                nrOfDecimals = stableCoinAddress != address(0) ?
+                nrOfDecimals_usd[stableCoinAddress] :
+                nrOfDecimals;
+
+                returnAmount = amount * (returnRate_a * 10**nrOfDecimals) / returnRate_b;
+
+                return (returnAmount, nrOfDecimals);
 
             }
         } else {    
@@ -140,44 +155,44 @@ contract GelatoOracleAggregator is Ownable{
             /// e.g. calculating KNC/UNI where
             /// KNC/ETH and UNI/ETH oracles available
             if (pair_a == pair_b) {
-                (returnRate_a, nrOfDecimals_a) = getRate(tokenAddress_a, pair_a);
+                (returnRate_a, nrOfDecimals) = getRate(tokenAddress_a, pair_a);
                 (returnRate_b, ) = getRate(tokenAddress_b, pair_b);
                 
-                returnAmount = amount * (returnRate_a * 10**nrOfDecimals_a) / returnRate_b;
+                returnAmount = amount * (returnRate_a * 10**nrOfDecimals) / returnRate_b;
 
-                return (returnAmount, nrOfDecimals_a);
+                return (returnAmount, nrOfDecimals);
                 
             } else if (pair_a == ETH_ADDRESS && pair_b == USD_ADDRESS) {
             /// oracle of token_a/ETH and token_b/USD exists
             /// e.g. calculating UNI/SXP where
             /// UNI/ETH and SXP/USD oracles available
-                (returnRate_a, nrOfDecimals_a) = getRate(tokenAddress_a, pair_a);
+                (returnRate_a, nrOfDecimals) = getRate(tokenAddress_a, pair_a);
                 (returnRate_b, ) = getRate(tokenAddress_b, pair_b);
-                (uint returnRate_ETHUSD, uint nrOfDecimals_ETHUSD) = getRate(ETH_ADDRESS, USD_ADDRESS);
+                (uint returnRate_ETHUSD,) = getRate(ETH_ADDRESS, USD_ADDRESS);
                 
                 uint returnRate_aUSD = returnRate_a * returnRate_ETHUSD;
 
                 returnAmount = amount * returnRate_aUSD / returnRate_b;
                 
-                return (returnAmount, nrOfDecimals_a);
+                return (returnAmount, nrOfDecimals);
                 
             } else if (pair_a == USD_ADDRESS && pair_b == ETH_ADDRESS) {
              /// oracle of token_a/USD and token_b/ETH exists
             /// e.g. calculating SXP/UNI where
             /// SXP/USD and UNI/ETH oracles available
-                (returnRate_a, nrOfDecimals_a) = getRate(tokenAddress_a, pair_a);
+                (returnRate_a, nrOfDecimals) = getRate(tokenAddress_a, pair_a);
                 (returnRate_b, ) = getRate(tokenAddress_b, pair_b);
                 (uint returnRate_USDETH, uint nrOfDecimals_USDETH) = getRate(USD_ADDRESS, ETH_ADDRESS);
                 
                 uint returnRate_aETH = returnRate_a * returnRate_USDETH;
+
+                returnAmount = amount * returnRate_aETH / returnRate_b * 10 ** (nrOfDecimals_USDETH - nrOfDecimals);
                 
-                returnAmount = amount * returnRate_aETH / returnRate_b;
-                
-                return (returnAmount, nrOfDecimals_a);
+                return (returnAmount, nrOfDecimals_USDETH);
             }
         }
     }
-
+    /// check the available oracles for token a & b and choose which oracles to use 
     function checkAvailablePair(address tokenAddress_a, address tokenAddress_b) private view returns(address, address) {
         if (
             tokenPairAddress[tokenAddress_a][USD_ADDRESS] != address(0) && 
@@ -204,33 +219,63 @@ contract GelatoOracleAggregator is Ownable{
         }   
     }
     
-    function getRate(address tokenAddress_a, address tokenAddress_b) private view returns(uint, uint) {
-        AggregatorV3Interface priceFeed;
+    function getRate(address tokenAddress_a, address tokenAddress_b) private view returns(uint tokenPrice, uint nrOfDecimals) {
+        if (tokenAddress_a == tokenAddress_b) {
+            return (1 , 0);
+        } else {
+            AggregatorV3Interface priceFeed;
 
-        priceFeed = AggregatorV3Interface(tokenPairAddress[tokenAddress_a][tokenAddress_b]);
+            priceFeed = AggregatorV3Interface(tokenPairAddress[tokenAddress_a][tokenAddress_b]);
 
-        (
-            uint80 roundID, 
-            int price,
-            uint startedAt,
-            uint timeStamp,
-            uint80 answeredInRound
-        ) = priceFeed.latestRoundData();
-    
-        uint nrOfDecimals = priceFeed.decimals();
-        uint tokenPrice = uint(price);
+            (,int price,,,) = priceFeed.latestRoundData();
         
-        return (tokenPrice, nrOfDecimals);
+            nrOfDecimals = priceFeed.decimals();
+            tokenPrice = uint(price);
+            
+            return (tokenPrice, nrOfDecimals);
+        }
+        
     }
-    ///converting all usd pegged stablecoins to single USD address
-    function convertUSD(address tokenAddress_a, address tokenAddress_b) private view returns(address, address) {
-        if (isUSD[tokenAddress_a]) {
+    /// converting all usd pegged stablecoins to single USD address
+    function convertUSD(address tokenAddress_a, address tokenAddress_b) private view returns (address, address) {
+        if (
+            nrOfDecimals_usd[tokenAddress_a] > 0 && 
+            nrOfDecimals_usd[tokenAddress_b] > 0
+        ) {
+            return (USD_ADDRESS, USD_ADDRESS);
+
+        } else if (nrOfDecimals_usd[tokenAddress_a] > 0) {
             return (USD_ADDRESS, tokenAddress_b);
-        } else if (isUSD[tokenAddress_b]) {
+
+        } else if (nrOfDecimals_usd[tokenAddress_b] > 0) {
             return (tokenAddress_a, USD_ADDRESS);
+
         } else {
             return (tokenAddress_a, tokenAddress_b);
+
         }
+    }
+    /// modify nrOfDecimlas and amount to follow stableCoin's nrOfDecimals
+    function matchStableCoinDecimal(
+        address stableCoinAddress, 
+        uint amount, 
+        uint nrOfDecimals,
+        uint padding, 
+        uint returnRate_a, 
+        uint returnRate_b
+    ) 
+        private 
+        view 
+        returns (uint returnAmount) {
+            uint div = nrOfDecimals_usd[stableCoinAddress] > nrOfDecimals ? 
+            10 ** ( nrOfDecimals_usd[stableCoinAddress] - nrOfDecimals) : 
+            10 ** (nrOfDecimals -  nrOfDecimals_usd[stableCoinAddress]);
+
+            returnAmount = nrOfDecimals_usd[stableCoinAddress] > nrOfDecimals ? 
+            amount * (returnRate_a * 10**padding) / returnRate_b * div : 
+            amount * (returnRate_a * 10**padding) / returnRate_b / div;
+
+            return (returnAmount);
     }
 }
 

@@ -13,15 +13,29 @@ function roundToTwo(num) {
     return +(Math.round(num + "e+2")  + "e-2");
 }
 
+async function getPriceFromOracle(oracleAddress){
+  const ChainlinkOracle = await ethers.getContractAt(
+    ChainlinkOracleAbi,
+    oracleAddress
+  );
+
+  const oracleData = await ChainlinkOracle.latestRoundData();
+  const oracleDecimals = await ChainlinkOracle.decimals();
+  const oraclePrice =
+    parseInt(oracleData.answer) / Math.pow(10, parseInt(oracleDecimals));
+
+    return oraclePrice;
+}
 
 describe('GelatoOracleAggregator TEST', async function(){
     var contract, returnAmount, nrOfDecimals;
+    const sellAmount = ethers.utils.parseUnits("1", "6");
     const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
     const USD_ADDRESS = '0x7354C81fbCb229187480c4f497F945C6A312d5C3';
+    const BUSD_ADDRESS = '0x4Fabb145d64652a948d72533023f6E7A623C7C53';
     const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
     const KNC_ADDRESS = '0xdd974D5C2e2928deA5F71b9825b8b646686BD200';
     const UNI_ADDRESS = '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984';
-    const WBTC_ADDRESS = '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599';
     const SXP_ADDRESS = '0x8CE9137d39326AD0cD6491fb5CC0CbA0e089b6A9';
     const AAVE_ADDRESS = "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9";
 
@@ -39,224 +53,180 @@ describe('GelatoOracleAggregator TEST', async function(){
         console.log("🔵Contract address:", contract.address);
     })
 
+    it("should get expected return amount and nrOfDecimals of USDC/AAVE", async () => {
+      [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, USDC_ADDRESS, AAVE_ADDRESS)
 
-  it("should get expected return amount of USDC/AAVE", async () => {
-    const sellAmount = ethers.utils.parseUnits("1", "6");
-    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, USDC_ADDRESS, AAVE_ADDRESS)
+      console.log("\n\nUSDC/AAVE returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("USDC/AAVE nrOfDecimals: ", parseInt(nrOfDecimals));
 
-    console.log("returnAmount: ", returnAmount / Math.pow(10, nrOfDecimals));
+      const oraclePriceAaveEth = await
+        getPriceFromOracle("0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012");
 
-    const aaveEthChainlinkOracle = await ethers.getContractAt(
-      ChainlinkOracleAbi,
-      "0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012"
-    );
+      const oraclePriceUsdEth = await
+        getPriceFromOracle("0x986b5E1e1755e3C2440e960477f25201B0a8bbD4");
 
-    const usdEthChainlinkOracle = await ethers.getContractAt(
-      ChainlinkOracleAbi,
-      "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4"
-    );
+      // Desired Return Amount
+      const desiredReturnAmount =
+        parseInt(sellAmount) * (oraclePriceUsdEth / oraclePriceAaveEth);
 
-    const oracleDataAave = await aaveEthChainlinkOracle.latestRoundData();
-    const oracleDecimalsAave = await aaveEthChainlinkOracle.decimals();
-    const oraclePriceAaveEth =
-      parseInt(oracleDataAave.answer) / Math.pow(10, parseInt(oracleDecimalsAave));
+      console.log(`1 USDC is worth ${oraclePriceAaveEth / oraclePriceUsdEth} AAVE`);
+      console.log("desiredReturnAmount: ", desiredReturnAmount);
 
-    console.log('oraclePriceAaveEth: ', oraclePriceAaveEth);
+      expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+        roundToTwo(desiredReturnAmount)
+      );
+      expect(nrOfDecimals).to.be.equal(18);
+    })
 
-    const oracleDataEth = await usdEthChainlinkOracle.latestRoundData();
-    const oracleDecimalsEth = await usdEthChainlinkOracle.decimals();
-    const oraclePriceUsdEth =
-      parseInt(oracleDataEth.answer) / Math.pow(10, parseInt(oracleDecimalsEth));
+// tokenA and tokenB are USD
+  it('should get expected return amount and nrOfDecimals of USDC/BUSD', async() => {
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, USDC_ADDRESS, BUSD_ADDRESS)
 
-    console.log('oraclePriceUsdEth: ', oraclePriceUsdEth);
+    console.log("\n\nUSDC/BUSD returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+    console.log("USDC/BUSD nrOfDecimals: ", parseInt(nrOfDecimals));
 
-    // Desired Return Amount
-    const desiredReturnAmount =
-      parseInt(sellAmount) * (oraclePriceUsdEth / oraclePriceAaveEth);
+    expect(returnAmount / Math.pow(10, parseInt(nrOfDecimals)))
+      .to.be.equal(sellAmount);
 
-    // Exchange Rate confirmed via CoinGecko
-    console.log(`1 USDC is worth ${oraclePriceAaveEth / oraclePriceUsdEth} AAVE`);
-    console.log("desiredReturnAmount: ", desiredReturnAmount);
-
-    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
-      roundToTwo(desiredReturnAmount)
-    );
+    expect(nrOfDecimals).to.be.equal(18);
   })
-    
-    it('should add new WBTC/USD token pair', async()=> {
-        await contract.addToken(WBTC_ADDRESS,USD_ADDRESS,'0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c');
-        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(1, WBTC_ADDRESS, USD_ADDRESS)
 
-        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
-
-        expect(returnAmount).to.not.be.null;
-
-    })
-
-    it('should be reverted when trying to add new WBTC/ETH token pair (not owner)', async()=> {
-        const contractSingner = contract.connect(user)
-        await expect(
-            contractSingner.addToken(WBTC_ADDRESS,ETH_ADDRESS,'0xdeb288F737066589598e9214E782fa5A8eD689e8')
-        ).to.be.reverted;
-        
-    })
-
+// tokenB is ETH or USD
+    // orcale for tokenA/tokenB not available
+    it("should get expected return amount and nrOfDecimals of UNI/USDC", async () => {
+      [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, UNI_ADDRESS, USDC_ADDRESS)
   
-    it('should be reverted when input has two same tokens', async() => {
-        await expect(
-            contract.getExpectedReturnAmount(25, KNC_ADDRESS, KNC_ADDRESS)
-        ).to.be.reverted;
+      console.log("\n\nUNI/USDC returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("UNI/USDC nrOfDecimals: ", parseInt(nrOfDecimals));
+
+      const oraclePriceUniEth = await
+        getPriceFromOracle("0xD6aA3D25116d8dA79Ea0246c4826EB951872e02e");
+  
+      const oraclePriceUsdcEth = await
+        getPriceFromOracle("0x986b5E1e1755e3C2440e960477f25201B0a8bbD4");
+  
+      // Desired Return Amount
+      const desiredReturnAmount =
+        parseInt(sellAmount) * (oraclePriceUniEth / oraclePriceUsdcEth);
+  
+      console.log(`1 UNI is worth ${oraclePriceUniEth / oraclePriceUsdcEth} USDC`);
+      console.log("desiredReturnAmount: ", desiredReturnAmount);
+  
+      expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+        roundToTwo(desiredReturnAmount)
+      );
+      expect(nrOfDecimals).to.be.equal(6);
     })
 
-    it('should be reverted when input has two usd tokens', async() => {
-        await expect(
-            contract.getExpectedReturnAmount(25, USD_ADDRESS, USDC_ADDRESS)
-        ).to.be.reverted;
+    //oracle for tokenA/tokenB available
+    it("should get expected return amount and nrOfDecimals of ETH/USDC", async () => {
+      [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, ETH_ADDRESS, USDC_ADDRESS)
+  
+      console.log("\n\nETH/USDC returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("ETH/USDC nrOfDecimals: ", parseInt(nrOfDecimals));
+  
+      const oraclePriceEthUsd = await
+        getPriceFromOracle("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
+  
+      // Desired Return Amount
+      const desiredReturnAmount =
+        parseInt(sellAmount) * oraclePriceEthUsd;
+  
+      console.log(`1 ETH is worth ${oraclePriceEthUsd} USDC`);
+      console.log("desiredReturnAmount: ", desiredReturnAmount);
+  
+      expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+        roundToTwo(desiredReturnAmount)
+      );
+      expect(nrOfDecimals).to.be.equal(6);
     })
 
-    it('should get expected return amount of KNC/ETH', async() => {
-        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, ETH_ADDRESS)
-
-        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
-
-        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
-        .to.be.equal
-        (0.05);
-    })
-
-    it('should get expected return amount of UNI/USD', async() => {
-        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, USD_ADDRESS)
-
-        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
-
-
-        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
-        .to.be.equal
-        (53.61);
-    })
-
+// token B is not ETH or USD
+    // using oracles tokenA/USD and tokenB/USD or tokenA/ETH and tokenB/ETH
     it('should get expected return amount of KNC/UNI', async() => {
-        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, KNC_ADDRESS, UNI_ADDRESS)
-
-        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
-
-        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
-        .to.be.equal
-        (8.60);
+      [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, KNC_ADDRESS, UNI_ADDRESS)
+  
+      console.log("\n\nKNC/UNI returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("KNC/UNI nrOfDecimals: ", parseInt(nrOfDecimals));
+  
+      const oraclePriceKncEth = await
+        getPriceFromOracle("0x656c0544eF4C98A6a98491833A89204Abb045d6b");
+  
+      const oraclePriceUniEth = await
+        getPriceFromOracle("0xD6aA3D25116d8dA79Ea0246c4826EB951872e02e");
+  
+      // Desired Return Amount
+      const desiredReturnAmount =
+        parseInt(sellAmount) * ( oraclePriceKncEth / oraclePriceUniEth);
+  
+      console.log(`1 KNC is worth ${oraclePriceKncEth / oraclePriceUniEth} UNI`);
+      console.log("desiredReturnAmount: ", desiredReturnAmount);
+  
+      expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+        roundToTwo(desiredReturnAmount)
+      );
+      expect(nrOfDecimals).to.be.equal(18);
     })
 
+    // using oracles tokenA/ETH and tokenB/USD
     it('should get expected return amount of UNI/SXP', async() => {
-        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, UNI_ADDRESS, SXP_ADDRESS)
+      [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, UNI_ADDRESS, SXP_ADDRESS)
+  
+      console.log("\n\nUNI/SXP returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("UNI/SXP nrOfDecimals: ", parseInt(nrOfDecimals));
+  
+      const oraclePriceUniEth = await
+        getPriceFromOracle("0xD6aA3D25116d8dA79Ea0246c4826EB951872e02e");
+  
+      const oraclePriceSxpUsd = await
+        getPriceFromOracle("0xFb0CfD6c19e25DB4a08D8a204a387cEa48Cc138f");
 
-        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
-
-
-        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
-        .to.be.equal
-        (69.87);
+      const oraclePriceEthUsd = await
+        getPriceFromOracle("0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419");
+  
+  
+      // Desired Return Amount
+      const desiredReturnAmount =
+        parseInt(sellAmount) * ( oraclePriceUniEth * oraclePriceEthUsd / oraclePriceSxpUsd);
+  
+      console.log(`1 UNI is worth ${oraclePriceUniEth * oraclePriceEthUsd / oraclePriceSxpUsd} SXP`);
+      console.log("desiredReturnAmount: ", desiredReturnAmount);
+  
+      expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+        roundToTwo(desiredReturnAmount)
+      );
+      expect(nrOfDecimals).to.be.equal(18);
     })
 
+    // using oracles tokenA/USD and tokenB/ETH
     it('should get expected return amount of SXP/UNI', async() => {
-        [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(25, SXP_ADDRESS, UNI_ADDRESS)
+      [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(sellAmount, SXP_ADDRESS, UNI_ADDRESS)
+  
+      console.log("\n\nSXP/UNI returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("SXP/UNI nrOfDecimals: ", parseInt(nrOfDecimals));
+  
+      const oraclePriceUniEth = await
+        getPriceFromOracle("0xD6aA3D25116d8dA79Ea0246c4826EB951872e02e");
+  
+      const oraclePriceSxpUsd = await
+        getPriceFromOracle("0xFb0CfD6c19e25DB4a08D8a204a387cEa48Cc138f");
 
-        console.log('returnAmount: ', returnAmount / Math.pow(10, nrOfDecimals));
-
-
-        expect( roundToTwo( returnAmount / Math.pow(10, nrOfDecimals)))
-        .to.be.equal
-        (8.95);
-    })
-
-    it('should be reverted when input has invalid token address', async() => {
-        await expect( 
-            contract.getExpectedReturnAmount(1, '0x8CE9137d39326AD0cD6491fb5CC0CbA0e089b6A8', KNC_ADDRESS)
-        ).to.be.reverted
+      const oraclePriceUsdEth = await
+        getPriceFromOracle("0x986b5E1e1755e3C2440e960477f25201B0a8bbD4");
+  
+      // Desired Return Amount
+      const desiredReturnAmount =
+        parseInt(sellAmount) * ( oraclePriceSxpUsd * oraclePriceUsdEth / oraclePriceUniEth);
+  
+      console.log(`1 UNI is worth ${oraclePriceSxpUsd * oraclePriceUsdEth / oraclePriceUniEth} SXP`);
+      console.log("desiredReturnAmount: ", desiredReturnAmount);
+  
+      expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+        roundToTwo(desiredReturnAmount)
+      );
+      expect(nrOfDecimals).to.be.equal(18);
     })
 
    
 })
-
-
-// describe('GelatoOracleAggregator DEMO', async function() {
-
-//     var contract;
-//     var amount; 
-//     var addressToken_A; 
-//     var addressToken_B;
-//     var tokenPairPrice;
-//     const amount_tenToPower = 5;
-
-//     this.timeout(0);
-
-
-//     before(async function(){
-//         const [deployer] = await ethers.getSigners();
-         
-//         const GelatoOracleAggregator = await ethers.getContractFactory("GelatoOracleAggregator");
-//         contract = await GelatoOracleAggregator.deploy();
-    
-//         console.log('❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆');
-//         console.log("🔵Contract address:", contract.address);
-
-//     })
-
-
-//    it('Get token amount and token tickers', function(done){
-//     console.log('\n')
-//     console.log('🌟Calculate your return amount of tokenA/tokenB')
-//     console.log('🟥 Make sure to enter checksum token address');
-//     console.log('🟥 AMOUNT SHOULD NOT HAVE MORE THAN 5 DECIMAL PLACES ','\n');
-
-//     rl.question("Amount: ", function(_amount) {
-//         rl.question("Address of Token A: ", function(tokenA) {
-//             rl.question("Address of Token B: ", function(tokenB) {
-//             console.log(`
-//             Amount: ${_amount}
-//             Address of TokenA: ${tokenA}
-//             Address of TokenB: ${tokenB}
-//             `);
-
-//             if(_amount < 0.00001 || tokenA === ""|| tokenB === ""){
-//                 console.log('🟥 INVALID INPUTS');
-//                 process.exit(1);
-//             }
-
-//             amount =  _amount * Math.pow(10, amount_tenToPower);
-//             addressToken_A =  tokenA;
-//             addressToken_B =  tokenB; 
-
-//             done();
-//             });
-//         });
-//     });
-
-
-//    })
-
-//     it('Get return amount between token pairs', async() => {
-
-        
-//         try{ 
-//             var res = await contract.getExpectedReturnAmount(amount, addressToken_A, addressToken_B);
-//             var tx = await res.wait();
-//             var events = await tx.events.pop();
-
-//             const _returnAmount = await parseInt(events.args.returnAmount);
-//             const _nrOfDecimals = await parseInt(events.args.nrOfDecimals);
-
-//             var nrOfDecimals = _nrOfDecimals + amount_tenToPower;
-//             var returnAmount = _returnAmount / (Math.pow(10, nrOfDecimals));        
-                
-//             console.log(`🌟Return Amount of tokenA/tokenB with an amount of ${amount/Math.pow(10,amount_tenToPower)}: `  + returnAmount);
-//         } catch(err) {
-//             console.log('🟥',err.message);
-//             process.exit(1);
-//         }
-
-//     })
-
-  
-// })
-
-
 
