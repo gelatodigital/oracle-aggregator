@@ -3,7 +3,7 @@ const { task, types } = require("hardhat/config");
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-deploy");
-require("hardhat-deploy-ethers");
+require("hardhat-deploy-ethers"); 
 
 // Libraries
 const assert = require("assert");
@@ -16,8 +16,10 @@ const ALCHEMY_ID = process.env.ALCHEMY_ID;
 assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 
 // @dev fill this out
-const DEPLOYER = "YOUR ADDRESS"; //
+const DEPLOYER = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424"; //
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
+
+
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -42,12 +44,14 @@ module.exports = {
       // Custom
       GelatoCore: "0x1d681d76ce96E4d70a88A00EBbcfc1E47808d0b8",
     },
+   
     mainnet: {
       accounts: DEPLOYER_PK_MAINNET ? [DEPLOYER_PK_MAINNET] : [],
       chainId: 1,
       url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
       gasPrice: parseInt(utils.parseUnits("10", "gwei")),
-    },
+    }
+    
   },
   solidity: {
     compilers: [
