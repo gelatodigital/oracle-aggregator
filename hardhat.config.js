@@ -1,5 +1,4 @@
-// Buidler
-const { task, types } = require("hardhat/config");
+// Hardhat
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-deploy");
@@ -16,7 +15,7 @@ const ALCHEMY_ID = process.env.ALCHEMY_ID;
 assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 
 // @dev fill this out
-const DEPLOYER = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424"; //
+const DEPLOYER = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424";
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
 
 const mainnetAddresses = {

@@ -63,7 +63,7 @@ contract OracleAggregator is Ownable {
         uint256 amountIn,
         address inToken,
         address outToken
-    ) public view returns (uint256 returnAmount, uint256 decimalsOut) {
+    ) public view returns (uint256 returnAmount, uint256 returnDecimals) {
         // sanity checks
         require(amountIn > 0, "OracleAggregator: amountIn is Zero");
         require(
@@ -102,15 +102,15 @@ contract OracleAggregator is Ownable {
         // decimals of outToken
         if (outToken != _ETH_ADDRESS && outToken != _USD_ADDRESS) {
             try ERC20(outToken).decimals() returns (uint8 _outputDecimals) {
-                decimalsOut = uint256(_outputDecimals);
+                returnDecimals = uint256(_outputDecimals);
             } catch {
                 revert("OracleAggregator: ERC20.decimals() revert");
             }
         } else {
             if (outToken != _ETH_ADDRESS) {
-                decimalsOut = _nrOfDecimalsUSD[_USD_ADDRESS];
+                returnDecimals = _nrOfDecimalsUSD[_USD_ADDRESS];
             } else {
-                decimalsOut = 18;
+                returnDecimals = 18;
             }
         }
 
@@ -118,7 +118,7 @@ contract OracleAggregator is Ownable {
         address stableCoinAddress =
             _nrOfDecimalsUSD[outToken] > 0 ? outToken : address(0);
 
-        // convert stablecoin addresses to USD addresses
+        // convert stablecoin addresses to USD address
         (inToken, outToken) = _convertUSD(
             inToken,
             outToken
@@ -143,7 +143,7 @@ contract OracleAggregator is Ownable {
             );
         }
 
-        return (returnAmount, decimalsOut);
+        return (returnAmount, returnDecimals);
     }
 
     function _handleConvertToEthOrUsd(
