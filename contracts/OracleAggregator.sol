@@ -118,7 +118,7 @@ contract OracleAggregator is Ownable {
         address stableCoinAddress =
             _nrOfDecimalsUSD[outToken] > 0 ? outToken : address(0);
 
-        // convert stablecoin addresses to USD address
+        // convert any stablecoin addresses to USD address
         (inToken, outToken) = _convertUSD(
             inToken,
             outToken
