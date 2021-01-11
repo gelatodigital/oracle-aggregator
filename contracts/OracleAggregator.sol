@@ -33,6 +33,9 @@ contract OracleAggregator is Ownable {
         wethAddress = _weth;
         addTokens(_inTokens, _outTokens, _oracles);
         addStablecoins(_stablecoins, _decimals);
+        // required token pairs
+        require(_tokenPairAddress[_ETH_ADDRESS][_USD_ADDRESS] != address(0));
+        require(_tokenPairAddress[_USD_ADDRESS][_ETH_ADDRESS] != address(0));
     }
 
     function addTokens (
@@ -235,16 +238,14 @@ contract OracleAggregator is Ownable {
             // oracle of inToken/ETH and outToken/USD exists
             // e.g. calculating UNI/SXP where
             // UNI/ETH and SXP/USD oracles available
-            {
-                (uint256 priceA, ) = _getRate(inToken, pairA);
-                (uint256 priceETHUSD, ) =
-                    _getRate(_ETH_ADDRESS, _USD_ADDRESS);
-                (uint256 priceB, ) = _getRate(outToken, pairB);
+            (uint256 priceA, ) = _getRate(inToken, pairA);
+            (uint256 priceETHUSD, ) =
+                _getRate(_ETH_ADDRESS, _USD_ADDRESS);
+            (uint256 priceB, ) = _getRate(outToken, pairB);
 
-                returnAmount = amountIn
-                    .mul(priceA.mul(priceETHUSD))
-                    .div(priceB);
-            }
+            returnAmount = amountIn
+                .mul(priceA.mul(priceETHUSD))
+                .div(priceB);
             return returnAmount.div(10**nrOfDecimalsIn);
         } else if (pairA == _USD_ADDRESS && pairB == _ETH_ADDRESS) {
             // oracle of inToken/USD and outToken/ETH exists

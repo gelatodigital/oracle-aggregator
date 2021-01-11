@@ -68,7 +68,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneEth = ethers.utils.parseEther('1');
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneEth.toString(), ETH_ADDRESS, USDC_ADDRESS)
   
-      console.log("\n\nETH/USDC returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 ETH/USDC returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("ETH/USDC nrOfDecimals: ", parseInt(nrOfDecimals));
   
       const oraclePriceEthUsd = await
@@ -91,7 +91,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneUsdc = 10 ** 6;
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneUsdc.toString(), USDC_ADDRESS, ETH_ADDRESS)
   
-      console.log("\n\nUSDC/ETH returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 USDC/ETH returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
   
       const oraclePriceUsdEth = await
@@ -114,7 +114,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneUsdc = 10 ** 6;
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneUsdc.toString(), USDC_ADDRESS, BUSD_ADDRESS)
 
-      console.log("\n\nUSDC/BUSD returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 USDC/BUSD returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("BUSD nrOfDecimals: ", parseInt(nrOfDecimals));
 
       expect(returnAmount / Math.pow(10, parseInt(nrOfDecimals)))
@@ -129,7 +129,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneUni = ethers.utils.parseEther('1');
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneUni.toString(), UNI_ADDRESS, USDC_ADDRESS)
   
-      console.log("\n\nUNI/USDC returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 UNI/USDC returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("USDC nrOfDecimals: ", parseInt(nrOfDecimals));
 
       const oraclePriceUniEth = await
@@ -155,7 +155,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneSxp = ethers.utils.parseEther('1');
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneSxp.toString(), SXP_ADDRESS, ETH_ADDRESS)
   
-      console.log("\n\nSXP/ETH returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 SXP/ETH returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
 
       const oraclePriceSxpUsd = await
@@ -181,7 +181,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneKnc = ethers.utils.parseEther('1');
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneKnc.toString(), KNC_ADDRESS, UNI_ADDRESS)
   
-      console.log("\n\nKNC/UNI returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 KNC/UNI returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("UNI nrOfDecimals: ", parseInt(nrOfDecimals));
   
       const oraclePriceKncEth = await
@@ -207,7 +207,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneUni = ethers.utils.parseEther('1');
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneUni.toString(), UNI_ADDRESS, SXP_ADDRESS)
   
-      console.log("\n\nUNI/SXP returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 UNI/SXP returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("SXP nrOfDecimals: ", parseInt(nrOfDecimals));
   
       const oraclePriceUniEth = await
@@ -237,7 +237,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneSxp = ethers.utils.parseEther('1');
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneSxp.toString(), SXP_ADDRESS, UNI_ADDRESS)
   
-      console.log("\n\nSXP/UNI returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 SXP/UNI returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("UNI nrOfDecimals: ", parseInt(nrOfDecimals));
   
       const oraclePriceUniEth = await
@@ -265,7 +265,7 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneDollar = 10 ** 8;
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneDollar.toString(), USD_ADDRESS, AAVE_ADDRESS)
   
-      console.log("\n\nUSD/AAVE returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("\n\n1 USD/AAVE returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
       console.log("AAVE nrOfDecimals: ", parseInt(nrOfDecimals));
   
       const oraclePriceAaveEth = await
@@ -290,8 +290,8 @@ describe('GelatoOracleAggregator TEST', async function(){
       const oneAave = ethers.utils.parseEther('1');
       [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(oneAave.toString(), AAVE_ADDRESS, USD_ADDRESS)
   
-      console.log("\n\nAAVE/USD returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
-      console.log("USD/UNI nrOfDecimals: ", parseInt(nrOfDecimals));
+      console.log("\n\n1 AAVE/USD returnAmount: ", returnAmount / Math.pow(10,parseInt(nrOfDecimals)));
+      console.log("USD nrOfDecimals: ", parseInt(nrOfDecimals));
   
       const oraclePriceAaveEth = await
         getPriceFromOracle(network.config.oracles[AAVE_ADDRESS][ETH_ADDRESS]);
