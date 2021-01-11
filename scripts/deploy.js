@@ -9,8 +9,15 @@ async function main() {
     
     console.log("Account balance:", (await deployer.getBalance()).toString());
   
-    const GelatoOracleAggregator = await ethers.getContractFactory("GelatoOracleAggregator");
-    const contract = await GelatoOracleAggregator.deploy();
+    const { tokensA, tokensB, oracles, stablecoins, decimals } = getAggregatedOracles();
+    contract = await GelatoOracleAggregator.deploy(
+      WETH_ADDRESS,
+      tokensA,
+      tokensB,
+      oracles,
+      stablecoins,
+      decimals,
+    );
   
     console.log("Contract address:", contract.address);
   }
