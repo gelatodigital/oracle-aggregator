@@ -15,8 +15,11 @@ const ALCHEMY_ID = process.env.ALCHEMY_ID;
 assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 
 // @dev fill this out
-const DEPLOYER = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424";
+const DEPLOYER_MAINNET = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424";
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
+const DEPLOYER_RINKEBY = "0x4B5BaD436CcA8df3bD39A095b84991fAc9A226F1"
+const DEPLOYER_PK_RINKEBY = process.env.DEPLOYER_PK_RINKEBY;
+
 const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 const USD_ADDRESS = "0x7354C81fbCb229187480c4f497F945C6A312d5C3";
 
@@ -180,6 +183,54 @@ const mainnetAddressBook = {
   oracles: mainnetOracles,
 };
 
+const rinkebyAddresses = {
+  ethAddress: ETH_ADDRESS,
+  usdAddress: USD_ADDRESS,
+  batAddress: "0xbF7A7169562078c96f0eC1A8aFD6aE50f12e5A99",
+  daiAddress: "0x5592EC0cfb4dbc12D3aB100b257153436a1f0FEa",
+  linkAddress: "0x01BE23585060835E02B77ef475b0Cc51aA1e0709",
+  repAddress: "0x6e894660985207feb7cf89Faf048998c71E8EE89",
+  snxAddress: "0xcBBb17D9767bD57FBF4Bbf8842E916bCb3826ec1",
+  usdcAddress: "0x4DBCdF9B62e891a7cec5A2568C3F4FAF9E8Abe2b",
+  wethAddress: "0xc778417E063141139Fce010982780140Aa0cD5Ab",
+  zrxAddress: "0xddea378A6dDC8AfeC82C36E9b0078826bf9e68B6",
+};
+
+let rinkebyOracles = {};
+rinkebyOracles[rinkebyAddresses.usdAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0xdCA36F27cbC4E38aE16C4E9f99D39b42337F6dcf",
+};
+rinkebyOracles[rinkebyAddresses.ethAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0x8A753747A1Fa494EC906cE90E9f37563A8AF630e",
+};
+rinkebyOracles[rinkebyAddresses.batAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0x031dB56e01f82f20803059331DC6bEe9b17F7fC9",
+};
+rinkebyOracles[rinkebyAddresses.linkAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xd8bD0a1cB028a31AA859A21A3758685a95dE4623",
+};
+rinkebyOracles[rinkebyAddresses.repAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0x9331b55D9830EF609A2aBCfAc0FBCE050A52fdEa",
+};
+rinkebyOracles[rinkebyAddresses.snxAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xE96C4407597CD507002dF88ff6E0008AB41266Ee",
+};
+rinkebyOracles[rinkebyAddresses.zrxAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xF7Bbe4D7d13d600127B6Aa132f1dCea301e9c8Fc",
+};
+
+const rinkebyAddressBook = {
+  addresses: rinkebyAddresses,
+  oracles: rinkebyOracles,
+};
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -189,7 +240,8 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0,
-      mainnet: DEPLOYER,
+      mainnet: DEPLOYER_MAINNET,
+      rinkeby: DEPLOYER_RINKEBY,
     },
   },
   networks: {
@@ -211,6 +263,14 @@ module.exports = {
       url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
       gasPrice: parseInt(utils.parseUnits("10", "gwei")),
       ...mainnetAddressBook,
+    },
+
+    rinkeby: {
+      accounts: DEPLOYER_PK_RINKEBY ? [DEPLOYER_PK_RINKEBY] : [],
+      chainId: 4,
+      url: `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_ID}`,
+      gasPrice: parseInt(utils.parseUnits("2", "gwei")),
+      ...rinkebyAddressBook,
     },
   },
   solidity: {
