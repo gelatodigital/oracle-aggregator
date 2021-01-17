@@ -42,7 +42,7 @@
   "husky": {
     "hooks": {
       "pre-commit": "yarn install && yarn compile --force && yarn lint:sol && lint-staged && yarn format",
-      "pre-push": "git fetch origin && HUSKY_SKIP_HOOKS=1 git rebase origin/master && yarn test"
+      "pre-push": "git fetch origin && HUSKY_SKIP_HOOKS=1 git rebase origin/main && yarn test"
     }
   },
   "lint-staged": {
