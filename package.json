@@ -29,7 +29,8 @@
     "solhint-plugin-prettier": "^0.0.5",
     "husky": ">=4",
     "eslint": "7.14.0",
-    "eslint-config-prettier": "6.15.0"
+    "eslint-config-prettier": "6.15.0",
+    "lint-staged": "10.5.2"
   },
   "dependencies": {
     "@chainlink/contracts": "0.0.11",
@@ -43,5 +44,9 @@
       "pre-commit": "yarn install && yarn compile --force && yarn lint:sol && lint-staged && yarn format",
       "pre-push": "git fetch origin && HUSKY_SKIP_HOOKS=1 git rebase origin/master && yarn test"
     }
+  },
+  "lint-staged": {
+    "*.js": "eslint --cache --fix",
+    "*.{js,sol,json,css,md}": "prettier --write"
   }
 }
