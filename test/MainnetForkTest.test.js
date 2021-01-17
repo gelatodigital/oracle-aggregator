@@ -43,24 +43,8 @@ describe("GelatoOracleAggregator TEST", async function () {
   before(async function () {
     [deployer, user] = await ethers.getSigners();
 
-    const GelatoOracleAggregator = await ethers.getContractFactory(
-      "OracleAggregator"
-    );
-    const {
-      tokensA,
-      tokensB,
-      oracles,
-      stablecoins,
-      decimals,
-    } = getAggregatedOracles();
-    contract = await GelatoOracleAggregator.deploy(
-      WETH_ADDRESS,
-      tokensA,
-      tokensB,
-      oracles,
-      stablecoins,
-      decimals
-    );
+    await deployments.fixture();
+    contract = await ethers.getContract("OracleAggregator");
     console.log("❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆");
     console.log("🔵Contract address:", contract.address);
   });

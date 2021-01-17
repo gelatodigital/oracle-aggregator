@@ -17,7 +17,7 @@ assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 // @dev fill this out
 const DEPLOYER_MAINNET = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424";
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
-const DEPLOYER_RINKEBY = "0x4B5BaD436CcA8df3bD39A095b84991fAc9A226F1"
+const DEPLOYER_RINKEBY = "0x4B5BaD436CcA8df3bD39A095b84991fAc9A226F1";
 const DEPLOYER_PK_RINKEBY = process.env.DEPLOYER_PK_RINKEBY;
 
 const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
@@ -261,7 +261,7 @@ module.exports = {
       accounts: DEPLOYER_PK_MAINNET ? [DEPLOYER_PK_MAINNET] : [],
       chainId: 1,
       url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-      gasPrice: parseInt(utils.parseUnits("10", "gwei")),
+      gasPrice: parseInt(utils.parseUnits("45", "gwei")),
       ...mainnetAddressBook,
     },
 
