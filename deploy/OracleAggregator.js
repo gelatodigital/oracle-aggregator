@@ -1,18 +1,17 @@
+const { sleep } = require("@gelatonetwork/core");
 const { getAggregatedOracles } = require("../test/helper");
-const { ethers, network } = require("hardhat");
 
-async function main() {
-  if (network.name == "mainnet") {
+module.exports = async (hre) => {
+  if (hre.network.name === "mainnet") {
     console.log(
-      "for safety mainnet deployment is disallowed by default\nsee scripts/deploy.js to allow"
+      "\n\n Deploying OracleAggregator to mainnet. Hit ctrl + c to abort"
     );
-    return;
+    console.log("❗ CONNECTOR DEPLOYMENT: VERIFY");
+    await sleep(10000);
   }
-  const [deployer] = await ethers.getSigners();
-
-  console.log("Deploying contracts with the account:", deployer.address);
-
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+  const { deployments } = hre;
+  const { deploy } = deployments;
+  const { deployer } = await hre.getNamedAccounts();
 
   const {
     tokensA,
@@ -21,25 +20,18 @@ async function main() {
     stablecoins,
     decimals,
   } = getAggregatedOracles();
-  const GelatoOracleAggregator = await ethers.getContractFactory(
-    "OracleAggregator",
-    deployer
-  );
-  const contract = await GelatoOracleAggregator.deploy(
-    network.config.addresses.wethAddress,
-    tokensA,
-    tokensB,
-    oracles,
-    stablecoins,
-    decimals
-  );
 
-  console.log("Contract address:", contract.address);
-}
-
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
+  await deploy("OracleAggregator", {
+    from: deployer,
+    args: [
+      hre.network.config.addresses.wethAddress,
+      tokensA,
+      tokensB,
+      oracles,
+      stablecoins,
+      decimals,
+    ],
   });
+};
+
+module.exports.tags = ["OracleAggregator"];

@@ -15,8 +15,11 @@ const ALCHEMY_ID = process.env.ALCHEMY_ID;
 assert.ok(ALCHEMY_ID, "no Alchemy ID in process.env");
 
 // @dev fill this out
-const DEPLOYER = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424";
-const DEPLOYER_PK = process.env.DEPLOYER_PK;
+const DEPLOYER_MAINNET = "0x2F4dAcdD6613Dd2d41Ea0C578d7E666bbDAf3424";
+const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
+const DEPLOYER_RINKEBY = "0x4B5BaD436CcA8df3bD39A095b84991fAc9A226F1"
+const DEPLOYER_PK_RINKEBY = process.env.DEPLOYER_PK_RINKEBY;
+
 const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 const USD_ADDRESS = "0x7354C81fbCb229187480c4f497F945C6A312d5C3";
 
@@ -237,7 +240,8 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0,
-      mainnet: DEPLOYER,
+      mainnet: DEPLOYER_MAINNET,
+      rinkeby: DEPLOYER_RINKEBY,
     },
   },
   networks: {
@@ -254,7 +258,7 @@ module.exports = {
     },
 
     mainnet: {
-      accounts: DEPLOYER_PK ? [DEPLOYER_PK] : [],
+      accounts: DEPLOYER_PK_MAINNET ? [DEPLOYER_PK_MAINNET] : [],
       chainId: 1,
       url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
       gasPrice: parseInt(utils.parseUnits("10", "gwei")),
@@ -262,7 +266,7 @@ module.exports = {
     },
 
     rinkeby: {
-      accounts: DEPLOYER_PK ? [DEPLOYER_PK] : [],
+      accounts: DEPLOYER_PK_RINKEBY ? [DEPLOYER_PK_RINKEBY] : [],
       chainId: 4,
       url: `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_ID}`,
       gasPrice: parseInt(utils.parseUnits("2", "gwei")),
