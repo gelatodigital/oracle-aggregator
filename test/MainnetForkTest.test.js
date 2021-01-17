@@ -1,12 +1,5 @@
-const { ethers, network } = require("hardhat");
-const readline = require("readline");
+const { ethers, deployments, network } = require("hardhat");
 const { expect } = require("chai");
-const { getAggregatedOracles } = require("./helper");
-
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 function roundToTwo(num) {
   return +(Math.round(num + "e+2") + "e-2");
@@ -36,31 +29,12 @@ describe("GelatoOracleAggregator TEST", async function () {
   const UNI_ADDRESS = network.config.addresses.uniAddress;
   const SXP_ADDRESS = network.config.addresses.sxpAddress;
   const AAVE_ADDRESS = network.config.addresses.aaveAddress;
-  const WETH_ADDRESS = network.config.addresses.wethAddress;
 
   this.timeout(0);
 
   before(async function () {
-    [deployer, user] = await ethers.getSigners();
-
-    const GelatoOracleAggregator = await ethers.getContractFactory(
-      "OracleAggregator"
-    );
-    const {
-      tokensA,
-      tokensB,
-      oracles,
-      stablecoins,
-      decimals,
-    } = getAggregatedOracles();
-    contract = await GelatoOracleAggregator.deploy(
-      WETH_ADDRESS,
-      tokensA,
-      tokensB,
-      oracles,
-      stablecoins,
-      decimals
-    );
+    await deployments.fixture();
+    contract = await ethers.getContract("OracleAggregator");
     console.log("❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆");
     console.log("🔵Contract address:", contract.address);
   });

@@ -11,9 +11,13 @@ contract OracleAggregator is Ownable {
     using SafeMath for uint256;
 
     // solhint-disable var-name-mixedcase
-    address private constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
     // solhint-disable var-name-mixedcase
-    address private constant USD = 0x7354C81fbCb229187480c4f497F945C6A312d5C3;
+    address public constant USD = 0x7354C81fbCb229187480c4f497F945C6A312d5C3;
+
+    // solhint-disable var-name-mixedcase
+    string public constant VERSION = "v1.0.0";
 
     address public immutable WETH;
 

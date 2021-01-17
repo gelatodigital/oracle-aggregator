@@ -6,12 +6,13 @@ module.exports = async (hre) => {
     console.log(
       "\n\n Deploying OracleAggregator to mainnet. Hit ctrl + c to abort"
     );
-    console.log("❗ CONNECTOR DEPLOYMENT: VERIFY");
+    console.log("❗ OracleAggregator DEPLOYMENT: VERIFY");
     await sleep(10000);
   }
   const { deployments } = hre;
   const { deploy } = deployments;
   const { deployer } = await hre.getNamedAccounts();
+  console.log(deployer);
 
   const {
     tokensA,
@@ -33,5 +34,4 @@ module.exports = async (hre) => {
     ],
   });
 };
-
 module.exports.tags = ["OracleAggregator"];
