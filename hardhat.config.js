@@ -214,6 +214,10 @@ rinkebyOracles[rinkebyAddresses.repAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0x9331b55D9830EF609A2aBCfAc0FBCE050A52fdEa",
 };
+rinkebyOracles[rinkebyAddresses.snxAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xE96C4407597CD507002dF88ff6E0008AB41266Ee",
+};
 rinkebyOracles[rinkebyAddresses.zrxAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0xF7Bbe4D7d13d600127B6Aa132f1dCea301e9c8Fc",
