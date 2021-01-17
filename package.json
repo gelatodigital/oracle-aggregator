@@ -26,7 +26,10 @@
     "prettier": "^2.1.2",
     "prettier-plugin-solidity": "^1.0.0-alpha.60",
     "solhint": "^3.3.2",
-    "solhint-plugin-prettier": "^0.0.5"
+    "solhint-plugin-prettier": "^0.0.5",
+    "husky": ">=4",
+    "eslint": "7.14.0",
+    "eslint-config-prettier": "6.15.0"
   },
   "dependencies": {
     "@chainlink/contracts": "0.0.11",
@@ -34,5 +37,11 @@
     "@openzeppelin/contracts": "^3.2.0",
     "chai": "^4.2.0",
     "ethereum-waffle": "^3.2.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn install && yarn compile --force && yarn lint:sol && lint-staged && yarn format",
+      "pre-push": "git fetch origin && HUSKY_SKIP_HOOKS=1 git rebase origin/master && yarn test"
+    }
   }
 }
