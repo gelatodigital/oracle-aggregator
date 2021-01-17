@@ -46,7 +46,7 @@ module.exports.getAggregatedOracles = () => {
       network.config.addresses.yfiAddress,
       network.config.addresses.zrxAddress,
     ];
-  } else if (network.name == 'rinkeby') {
+  } else if (network.name == "rinkeby") {
     stablecoins = [
       network.config.addresses.usdAddress,
       network.config.addresses.usdcAddress,

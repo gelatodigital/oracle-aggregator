@@ -188,9 +188,10 @@ const rinkebyAddresses = {
   linkAddress: "0x01BE23585060835E02B77ef475b0Cc51aA1e0709",
   repAddress: "0x6e894660985207feb7cf89Faf048998c71E8EE89",
   snxAddress: "0xcBBb17D9767bD57FBF4Bbf8842E916bCb3826ec1",
+  usdcAddress: "0x4DBCdF9B62e891a7cec5A2568C3F4FAF9E8Abe2b",
   wethAddress: "0xc778417E063141139Fce010982780140Aa0cD5Ab",
   zrxAddress: "0xddea378A6dDC8AfeC82C36E9b0078826bf9e68B6",
-}
+};
 
 let rinkebyOracles = {};
 rinkebyOracles[rinkebyAddresses.usdAddress] = {
@@ -206,23 +207,22 @@ rinkebyOracles[rinkebyAddresses.batAddress] = {
     "0x031dB56e01f82f20803059331DC6bEe9b17F7fC9",
 };
 rinkebyOracles[rinkebyAddresses.linkAddress] = {
-  "0x7354C81fbCb229187480c4f497F945C6A312d5C3": 
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0xd8bD0a1cB028a31AA859A21A3758685a95dE4623",
 };
 rinkebyOracles[rinkebyAddresses.repAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
-    "0x9331b55D9830EF609A2aBCfAc0FBCE050A52fdEa"
+    "0x9331b55D9830EF609A2aBCfAc0FBCE050A52fdEa",
 };
 rinkebyOracles[rinkebyAddresses.zrxAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
-    "0xF7Bbe4D7d13d600127B6Aa132f1dCea301e9c8Fc"
+    "0xF7Bbe4D7d13d600127B6Aa132f1dCea301e9c8Fc",
 };
 
 const rinkebyAddressBook = {
   addresses: rinkebyAddresses,
   oracles: rinkebyOracles,
-}
-
+};
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -263,7 +263,7 @@ module.exports = {
       url: `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_ID}`,
       gasPrice: parseInt(utils.parseUnits("2", "gwei")),
       ...rinkebyAddressBook,
-    }
+    },
   },
   solidity: {
     compilers: [
