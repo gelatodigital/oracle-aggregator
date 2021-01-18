@@ -7,7 +7,7 @@ function roundToTwo(num) {
 
 async function getPriceFromOracle(oracleAddress) {
   const ChainlinkOracle = await ethers.getContractAt(
-    "AggregatorV3Interface",
+    "contracts/interfaces/AggregatorV3Interface.sol:AggregatorV3Interface",
     oracleAddress
   );
 
@@ -29,6 +29,7 @@ describe("GelatoOracleAggregator TEST", async function () {
   const UNI_ADDRESS = network.config.addresses.uniAddress;
   const SXP_ADDRESS = network.config.addresses.sxpAddress;
   const AAVE_ADDRESS = network.config.addresses.aaveAddress;
+  const WETH_ADDRESS = network.config.addresses.wethAddress;
 
   this.timeout(0);
 
@@ -373,5 +374,20 @@ describe("GelatoOracleAggregator TEST", async function () {
       roundToTwo(desiredReturnAmount)
     );
     expect(nrOfDecimals).to.be.equal(8);
+  });
+
+  it("should geth expected return amount of WETH/ETH", async () => {
+    const oneEth = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneEth.toString(),
+      WETH_ADDRESS,
+      ETH_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 WETH/ETH returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
   });
 });
