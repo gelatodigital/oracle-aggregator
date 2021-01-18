@@ -389,5 +389,9 @@ describe("GelatoOracleAggregator TEST", async function () {
       returnAmount / Math.pow(10, parseInt(nrOfDecimals))
     );
     console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
+    expect(
+      Number(returnAmount / Math.pow(10, parseInt(nrOfDecimals)))
+    ).to.be.equal(1);
+    expect(nrOfDecimals).to.be.equal(18);
   });
 });
