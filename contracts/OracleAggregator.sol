@@ -21,8 +21,8 @@ contract OracleAggregator is Ownable {
 
     address public immutable WETH;
 
-    mapping(address => mapping(address => address)) private _tokenPairAddress;
-    mapping(address => uint256) private _nrOfDecimalsUSD;
+    mapping(address => mapping(address => address)) public tokenPairAddress;
+    mapping(address => uint256) public nrOfDecimalsUSD;
 
     // solhint-disable function-max-lines
     constructor(
@@ -37,8 +37,8 @@ contract OracleAggregator is Ownable {
         addTokens(_inTokens, _outTokens, _oracles);
         addStablecoins(_stablecoins, _decimals);
         // required token pairs
-        require(_tokenPairAddress[ETH][USD] != address(0));
-        require(_tokenPairAddress[USD][ETH] != address(0));
+        require(tokenPairAddress[ETH][USD] != address(0));
+        require(tokenPairAddress[USD][ETH] != address(0));
     }
 
     function addTokens(
@@ -48,10 +48,16 @@ contract OracleAggregator is Ownable {
     ) public onlyOwner {
         require(
             _inTokens.length == _outTokens.length &&
-                _inTokens.length == _oracles.length
+                _inTokens.length == _oracles.length,
+            "OracleAggregator: Invalid input length"
         );
+
         for (uint256 i = 0; i < _inTokens.length; i++) {
-            _tokenPairAddress[_inTokens[i]][_outTokens[i]] = _oracles[i];
+            require(
+                tokenPairAddress[_inTokens[i]][_outTokens[i]] == address(0),
+                "OracleAggregator: Cannot update oracles"
+            );
+            tokenPairAddress[_inTokens[i]][_outTokens[i]] = _oracles[i];
         }
     }
 
@@ -61,7 +67,11 @@ contract OracleAggregator is Ownable {
     ) public onlyOwner {
         require(_stablecoins.length == _decimals.length);
         for (uint256 i = 0; i < _stablecoins.length; i++) {
-            _nrOfDecimalsUSD[_stablecoins[i]] = _decimals[i];
+            require(
+                nrOfDecimalsUSD[_stablecoins[i]] == uint256(0),
+                "OracleAggregator: Cannot update stablecoin decimals"
+            );
+            nrOfDecimalsUSD[_stablecoins[i]] = _decimals[i];
         }
     }
 
@@ -92,7 +102,7 @@ contract OracleAggregator is Ownable {
 
         // store outToken address if it is a stablecoin
         address stableCoinAddress =
-            _nrOfDecimalsUSD[outToken] > 0 ? outToken : address(0);
+            nrOfDecimalsUSD[outToken] > 0 ? outToken : address(0);
 
         // convert any stablecoin addresses to USD address
         (inToken, outToken) = _convertUSD(inToken, outToken);
@@ -129,7 +139,7 @@ contract OracleAggregator is Ownable {
         // oracle of inToken vs outToken exists
         // e.g. calculating KNC/ETH
         // and KNC/ETH oracle exists
-        if (_tokenPairAddress[inToken][outToken] != address(0)) {
+        if (tokenPairAddress[inToken][outToken] != address(0)) {
             (uint256 price, uint256 nrOfDecimals) = _getRate(inToken, outToken);
             returnAmount = stableCoinAddress != address(0)
                 ? _matchStableCoinDecimal(
@@ -154,7 +164,7 @@ contract OracleAggregator is Ownable {
             (uint256 priceB, uint256 nrOfDecimals) = _getRate(outToken, pairB);
 
             nrOfDecimals = stableCoinAddress != address(0)
-                ? _nrOfDecimalsUSD[stableCoinAddress]
+                ? nrOfDecimalsUSD[stableCoinAddress]
                 : nrOfDecimals;
 
             returnAmount = amountIn.mul(priceA.mul(10**nrOfDecimals)).div(
@@ -163,7 +173,7 @@ contract OracleAggregator is Ownable {
             if (outToken != ETH) {
                 return returnAmount.div(10**inTokenDecimals);
             } else {
-                return returnAmount.div(10**_nrOfDecimalsUSD[USD]);
+                return returnAmount.div(10**nrOfDecimalsUSD[USD]);
             }
         }
     }
@@ -190,7 +200,7 @@ contract OracleAggregator is Ownable {
             if (pairA == ETH) {
                 return returnAmount.div(10**inTokenDecimals);
             } else {
-                return returnAmount.div(10**_nrOfDecimalsUSD[USD]);
+                return returnAmount.div(10**nrOfDecimalsUSD[USD]);
             }
         } else if (pairA == ETH && pairB == USD) {
             // oracle of inToken/ETH and outToken/USD exists
@@ -233,23 +243,23 @@ contract OracleAggregator is Ownable {
         returns (address, address)
     {
         if (
-            _tokenPairAddress[inToken][USD] != address(0) &&
-            _tokenPairAddress[outToken][USD] != address(0)
+            tokenPairAddress[inToken][USD] != address(0) &&
+            tokenPairAddress[outToken][USD] != address(0)
         ) {
             return (USD, USD);
         } else if (
-            _tokenPairAddress[inToken][ETH] != address(0) &&
-            _tokenPairAddress[outToken][ETH] != address(0)
+            tokenPairAddress[inToken][ETH] != address(0) &&
+            tokenPairAddress[outToken][ETH] != address(0)
         ) {
             return (ETH, ETH);
         } else if (
-            _tokenPairAddress[inToken][ETH] != address(0) &&
-            _tokenPairAddress[outToken][USD] != address(0)
+            tokenPairAddress[inToken][ETH] != address(0) &&
+            tokenPairAddress[outToken][USD] != address(0)
         ) {
             return (ETH, USD);
         } else if (
-            _tokenPairAddress[inToken][USD] != address(0) &&
-            _tokenPairAddress[outToken][ETH] != address(0)
+            tokenPairAddress[inToken][USD] != address(0) &&
+            tokenPairAddress[outToken][ETH] != address(0)
         ) {
             return (USD, ETH);
         } else {
@@ -271,7 +281,7 @@ contract OracleAggregator is Ownable {
             }
         } else {
             if (inToken != ETH) {
-                inTokenDecimals = _nrOfDecimalsUSD[USD];
+                inTokenDecimals = nrOfDecimalsUSD[USD];
             } else {
                 inTokenDecimals = 18;
             }
@@ -286,7 +296,7 @@ contract OracleAggregator is Ownable {
             }
         } else {
             if (_outToken != ETH) {
-                outTokenDecimals = _nrOfDecimalsUSD[USD];
+                outTokenDecimals = nrOfDecimalsUSD[USD];
             } else {
                 outTokenDecimals = 18;
             }
@@ -301,7 +311,7 @@ contract OracleAggregator is Ownable {
         if (inToken == outToken) {
             return (1, 0);
         } else {
-            IOracle priceFeed = IOracle(_tokenPairAddress[inToken][outToken]);
+            IOracle priceFeed = IOracle(tokenPairAddress[inToken][outToken]);
             tokenPrice = uint256(priceFeed.latestAnswer());
             nrOfDecimals = priceFeed.decimals();
         }
@@ -313,11 +323,11 @@ contract OracleAggregator is Ownable {
         view
         returns (address, address)
     {
-        if (_nrOfDecimalsUSD[inToken] > 0 && _nrOfDecimalsUSD[outToken] > 0) {
+        if (nrOfDecimalsUSD[inToken] > 0 && nrOfDecimalsUSD[outToken] > 0) {
             return (USD, USD);
-        } else if (_nrOfDecimalsUSD[inToken] > 0) {
+        } else if (nrOfDecimalsUSD[inToken] > 0) {
             return (USD, outToken);
-        } else if (_nrOfDecimalsUSD[outToken] > 0) {
+        } else if (nrOfDecimalsUSD[outToken] > 0) {
             return (inToken, USD);
         } else {
             return (inToken, outToken);
@@ -334,10 +344,10 @@ contract OracleAggregator is Ownable {
         uint256 returnRateB
     ) private view returns (uint256 returnAmount) {
         uint256 div =
-            _nrOfDecimalsUSD[stableCoinAddress] > nrOfDecimals
-                ? 10**(_nrOfDecimalsUSD[stableCoinAddress].sub(nrOfDecimals))
-                : 10**(nrOfDecimals.sub(_nrOfDecimalsUSD[stableCoinAddress]));
-        returnAmount = _nrOfDecimalsUSD[stableCoinAddress] > nrOfDecimals
+            nrOfDecimalsUSD[stableCoinAddress] > nrOfDecimals
+                ? 10**(nrOfDecimalsUSD[stableCoinAddress].sub(nrOfDecimals))
+                : 10**(nrOfDecimals.sub(nrOfDecimalsUSD[stableCoinAddress]));
+        returnAmount = nrOfDecimalsUSD[stableCoinAddress] > nrOfDecimals
             ? amount.mul(returnRateA.mul(10**padding)).div(returnRateB).mul(div)
             : amount.mul(returnRateA.mul(10**padding)).div(returnRateB).div(
                 div
