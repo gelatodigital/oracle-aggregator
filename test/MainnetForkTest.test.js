@@ -374,4 +374,42 @@ describe("GelatoOracleAggregator TEST", async function () {
     );
     expect(nrOfDecimals).to.be.equal(8);
   });
+
+  it("Owner cannot update existing oracles", async () => {
+    // check that we already listed a particular oracle address
+    // AAVE <> ETH
+    const oracleAddress = await contract.tokenPairAddress(
+      AAVE_ADDRESS,
+      ETH_ADDRESS
+    );
+
+    expect(oracleAddress).to.not.be.equal(ethers.constants.AddressZero);
+
+    // Check that Owner cannot update existing oracles
+    await expect(
+      contract.addTokens(
+        [AAVE_ADDRESS],
+        [ETH_ADDRESS],
+        // Random Address
+        [UNI_ADDRESS]
+      )
+    ).to.be.revertedWith("OracleAggregator: Cannot update oracles");
+  });
+
+  it("Owner cannot update existing stablecoin decimals", async () => {
+    // check that we already listed a particular oracle address
+    // AAVE <> ETH
+    const numDecimals = await contract.nrOfDecimalsUSD(USDC_ADDRESS);
+
+    expect(numDecimals).to.not.be.equal(ethers.constants.Zero);
+
+    // Check that Owner cannot update existing oracles
+    await expect(
+      contract.addStablecoins(
+        [USDC_ADDRESS],
+        // Random Address
+        [100]
+      )
+    ).to.be.revertedWith("OracleAggregator: Cannot update stablecoin decimals");
+  });
 });
