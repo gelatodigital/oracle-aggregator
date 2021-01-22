@@ -113,7 +113,17 @@ contract OracleAggregatorV2 is Ownable {
         } else if (tokenPairAddress[outToken][inToken] != address(0)) {
             // Inverse of simple oracle exists for this token pair
             return
-                _div(10**inDecimals, _getRate(outToken, inToken), outDecimals);
+                _computeReturnAmount(
+                    amountIn,
+                    _div(
+                        10**inDecimals,
+                        _getRate(outToken, inToken),
+                        inDecimals
+                    ),
+                    inDecimals,
+                    inDecimals,
+                    outDecimals
+                );
         }
 
         // No simple Oracle exists for this token pair
