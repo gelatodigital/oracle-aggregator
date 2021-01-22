@@ -7,7 +7,7 @@ function roundToTwo(num) {
 
 async function getPriceFromOracle(oracleAddress) {
   const ChainlinkOracle = await ethers.getContractAt(
-    "AggregatorV3Interface",
+    "contracts/interfaces/AggregatorV3Interface.sol:AggregatorV3Interface",
     oracleAddress
   );
 
@@ -19,7 +19,7 @@ async function getPriceFromOracle(oracleAddress) {
   return oraclePrice;
 }
 
-describe("GelatoOracleAggregator TEST", async function () {
+describe("OracleAggregator V1 TEST", async function () {
   var contract, returnAmount, nrOfDecimals;
   const ETH_ADDRESS = network.config.addresses.ethAddress;
   const USD_ADDRESS = network.config.addresses.usdAddress;
@@ -29,6 +29,7 @@ describe("GelatoOracleAggregator TEST", async function () {
   const UNI_ADDRESS = network.config.addresses.uniAddress;
   const SXP_ADDRESS = network.config.addresses.sxpAddress;
   const AAVE_ADDRESS = network.config.addresses.aaveAddress;
+  const WETH_ADDRESS = network.config.addresses.wethAddress;
 
   this.timeout(0);
 
@@ -53,7 +54,7 @@ describe("GelatoOracleAggregator TEST", async function () {
       "\n\n1 ETH/USDC returnAmount: ",
       returnAmount / Math.pow(10, parseInt(nrOfDecimals))
     );
-    console.log("ETH/USDC nrOfDecimals: ", parseInt(nrOfDecimals));
+    console.log("USDC nrOfDecimals: ", parseInt(nrOfDecimals));
 
     const oraclePriceEthUsd = await getPriceFromOracle(
       network.config.oracles[ETH_ADDRESS][USD_ADDRESS]
@@ -369,10 +370,25 @@ describe("GelatoOracleAggregator TEST", async function () {
 
     console.log(`1 USD is worth ${desiredReturnAmount} AAVE`);
 
-    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
-      roundToTwo(desiredReturnAmount)
+    expect(Math.round(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      Math.round(desiredReturnAmount)
     );
     expect(nrOfDecimals).to.be.equal(8);
+  });
+
+  it("should geth expected return amount of WETH/ETH", async () => {
+    const oneEth = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneEth.toString(),
+      WETH_ADDRESS,
+      ETH_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 WETH/ETH returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
   });
 
   it("Owner cannot update existing oracles", async () => {
