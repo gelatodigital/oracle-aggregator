@@ -112,6 +112,7 @@ module.exports.getAggregatedOraclesV2 = () => {
       network.config.addresses.usdAddress,
       network.config.addresses.usdcAddress,
       network.config.addresses.usdtAddress,
+      network.config.addresses.usdkAddress,
       network.config.addresses.daiAddress,
       network.config.addresses.busdAddress,
       network.config.addresses.susdAddress,

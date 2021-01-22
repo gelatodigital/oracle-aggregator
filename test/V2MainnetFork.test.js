@@ -327,7 +327,6 @@ describe("OracleAggregator V2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(6);
   });
 
-  // test inToken Stablecoin, outToken ETH
   // using oracle USDK vs USD, ETH vs USD
   it("should get expected return amount and nrOfDecimals of USDK/ETH", async () => {
     const oneUsdk = ethers.utils.parseEther("1");
@@ -361,7 +360,7 @@ describe("OracleAggregator V2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(18);
   });
 
-  // test inToken generic USD address
+  // test using generic USD token address
   it("should get expected return amount of USD/AAVE", async () => {
     const oneDollar = 10 ** 8;
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -393,6 +392,35 @@ describe("OracleAggregator V2 TEST", async function () {
       roundToTwo(desiredReturnAmount)
     );
     expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of AAVE/USD", async () => {
+    const oneAave = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneAave.toString(),
+      AAVE_ADDRESS,
+      USD_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 AAVE/USD returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("USD nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceAaveUsd = await getPriceFromOracle(
+      network.config.oracles[AAVE_ADDRESS][USD_ADDRESS]
+    );
+
+    // Desired Return Amount
+    const desiredReturnAmount = oraclePriceAaveUsd;
+
+    console.log(`1 AAVE is worth ${desiredReturnAmount} USD`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(8);
   });
 
   it("should get expected return amount of AAVE/DAI", async () => {
@@ -474,6 +502,8 @@ describe("OracleAggregator V2 TEST", async function () {
       returnAmount / Math.pow(10, parseInt(nrOfDecimals))
     );
     console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
+    expect(returnAmount / Math.pow(10, nrOfDecimals)).to.be.equal(1);
+    expect(nrOfDecimals).to.be.equal(18);
   });
 
   it("Owner cannot update existing oracles", async () => {
