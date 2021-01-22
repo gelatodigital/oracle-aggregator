@@ -871,6 +871,32 @@ describe("OracleAggregator V2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(8);
   });
 
+  it("should get expected return amount of WBTC/ETH", async () => {
+    const oneWbtc = ethers.utils.parseUnits("1", "8");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneWbtc.toString(),
+      WBTC_ADDRESS,
+      ETH_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 WBTC/ETH returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceWbtcEth = await getPriceFromOracle(
+      network.config.oracles[WBTC_ADDRESS][ETH_ADDRESS]
+    );
+
+    console.log(`1 WBTC is worth ${oraclePriceWbtcEth} ETH`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(oraclePriceWbtcEth)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
   it("should get expected return amount of USDC/USDT", async () => {
     const oneUsdc = ethers.utils.parseUnits("1", "6");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
