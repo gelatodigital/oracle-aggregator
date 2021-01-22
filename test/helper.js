@@ -180,4 +180,4 @@ module.exports.getAggregatedOraclesV2 = () => {
   }
 
   return { tokensA, tokensB, oracles };
-}
+};

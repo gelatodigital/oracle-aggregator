@@ -196,7 +196,6 @@ mainnetOracles[mainnetAddresses.uniAddress] = {
 mainnetOracles[mainnetAddresses.usdcAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4",
-  
 };
 mainnetOracles[mainnetAddresses.usdkAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
@@ -205,7 +204,6 @@ mainnetOracles[mainnetAddresses.usdkAddress] = {
 mainnetOracles[mainnetAddresses.usdtAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46",
-  
 };
 mainnetOracles[mainnetAddresses.womAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":

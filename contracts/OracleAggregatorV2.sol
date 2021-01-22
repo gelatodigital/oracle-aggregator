@@ -91,8 +91,6 @@ contract OracleAggregatorV2 is Ownable {
                 returnDecimals
             );
         }
-
-        return ;
     }
 
     function _getExpectedReturnAmount(
@@ -101,21 +99,19 @@ contract OracleAggregatorV2 is Ownable {
         address outToken,
         uint256 inDecimals,
         uint256 outDecimals
-    )
-        private
-        view
-        returns(uint256) 
-    {
+    ) private view returns (uint256) {
         // Simple Oracle exists for this token pair
         if (tokenPairAddress[inToken][outToken] != address(0)) {
-            return _computeReturnAmount(
-                amountIn,
-                _getRate(inToken, outToken),
-                inDecimals,
-                outDecimals,
-                outDecimals
-            );
+            return
+                _computeReturnAmount(
+                    amountIn,
+                    _getRate(inToken, outToken),
+                    inDecimals,
+                    outDecimals,
+                    outDecimals
+                );
         }
+
         // No simple Oracle exists for this token pair
         uint256 price;
         uint256 priceDecimals;
@@ -135,7 +131,8 @@ contract OracleAggregatorV2 is Ownable {
             uint256 priceInEth = _getRate(inToken, pairA);
             uint256 priceEthUsd = _getRate(pairA, pairB);
             uint256 priceOutUsd = _getRate(outToken, pairB);
-            uint256 priceOutEth = _div(priceOutUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
+            uint256 priceOutEth =
+                _div(priceOutUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
             price = _div(priceInEth, priceOutEth, ETH_DECIMALS);
             priceDecimals = ETH_DECIMALS;
         } else {
@@ -143,18 +140,20 @@ contract OracleAggregatorV2 is Ownable {
             uint256 priceInUsd = _getRate(inToken, pairA);
             uint256 priceEthUsd = _getRate(pairB, pairA);
             uint256 priceOutEth = _getRate(outToken, pairB);
-            uint256 priceInEth = _div(priceInUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
+            uint256 priceInEth =
+                _div(priceInUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
             price = _div(priceInEth, priceOutEth, ETH_DECIMALS);
-            priceDecimals = ETH_DECIMALS;            
+            priceDecimals = ETH_DECIMALS;
         }
-        
-        return _computeReturnAmount(
-            amountIn,
-            price,
-            inDecimals,
-            priceDecimals,
-            outDecimals
-        );
+
+        return
+            _computeReturnAmount(
+                amountIn,
+                price,
+                inDecimals,
+                priceDecimals,
+                outDecimals
+            );
     }
 
     function _computeReturnAmount(
@@ -163,11 +162,7 @@ contract OracleAggregatorV2 is Ownable {
         uint256 inDecimals,
         uint256 priceDecimals,
         uint256 outDecimals
-    )
-        private
-        pure
-        returns(uint256)
-    {
+    ) private pure returns (uint256) {
         uint256 rawReturnAmount;
         uint256 rawReturnDecimals;
         if (inDecimals == priceDecimals) {
@@ -175,11 +170,19 @@ contract OracleAggregatorV2 is Ownable {
             rawReturnDecimals = priceDecimals;
         } else if (priceDecimals > inDecimals) {
             uint256 decimalDiff = priceDecimals.sub(inDecimals);
-            rawReturnAmount = _mul(amountIn.mul(10**decimalDiff), price, priceDecimals);
+            rawReturnAmount = _mul(
+                amountIn.mul(10**decimalDiff),
+                price,
+                priceDecimals
+            );
             rawReturnDecimals = priceDecimals;
         } else {
             uint256 decimalDiff = inDecimals.sub(priceDecimals);
-            rawReturnAmount = _mul(amountIn, price.mul(10**decimalDiff), inDecimals);
+            rawReturnAmount = _mul(
+                amountIn,
+                price.mul(10**decimalDiff),
+                inDecimals
+            );
             rawReturnDecimals = inDecimals;
         }
 
@@ -235,11 +238,7 @@ contract OracleAggregatorV2 is Ownable {
         }
     }
 
-    function _getDecimals(address token)
-        private
-        view
-        returns (uint256)
-    {
+    function _getDecimals(address token) private view returns (uint256) {
         if (token != ETH && token != USD) {
             try ERC20(token).decimals() returns (uint8 _decimals) {
                 return uint256(_decimals);
@@ -247,23 +246,23 @@ contract OracleAggregatorV2 is Ownable {
                 revert("OracleAggregator: ERC20.decimals() revert");
             }
         }
-        
+
         return token == ETH ? ETH_DECIMALS : USD_DECIMALS;
     }
 
-    function _div(uint256 x, uint256 y, uint256 decimals)
-        private
-        pure
-        returns(uint256)
-    {
+    function _div(
+        uint256 x,
+        uint256 y,
+        uint256 decimals
+    ) private pure returns (uint256) {
         return x.mul(10**decimals).add(y.div(2)).div(y);
     }
 
-    function _mul(uint256 x, uint256 y, uint256 decimals)
-        private
-        pure
-        returns(uint256)
-    {
+    function _mul(
+        uint256 x,
+        uint256 y,
+        uint256 decimals
+    ) private pure returns (uint256) {
         uint256 factor = 10**decimals;
         return x.mul(y).add(factor.div(2)).div(factor);
     }

@@ -19,13 +19,14 @@ async function getPriceFromOracle(oracleAddress) {
   return oraclePrice;
 }
 
-describe("OracleAggregatorV2 TEST", async function () {
+describe("OracleAggregator V2 TEST", async function () {
   var contract, returnAmount, nrOfDecimals;
   const ETH_ADDRESS = network.config.addresses.ethAddress;
   const USD_ADDRESS = network.config.addresses.usdAddress;
   const BUSD_ADDRESS = network.config.addresses.busdAddress;
   const DAI_ADDRESS = network.config.addresses.daiAddress;
   const USDC_ADDRESS = network.config.addresses.usdcAddress;
+  const USDK_ADDRESS = network.config.addresses.usdkAddress;
   const KNC_ADDRESS = network.config.addresses.kncAddress;
   const UNI_ADDRESS = network.config.addresses.uniAddress;
   const SXP_ADDRESS = network.config.addresses.sxpAddress;
@@ -36,44 +37,14 @@ describe("OracleAggregatorV2 TEST", async function () {
 
   before(async function () {
     await deployments.fixture();
-    contract = await ethers.getContract("OracleAggregator");
+    contract = await ethers.getContract("OracleAggregatorV2");
     console.log("❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆");
     console.log("🔵Contract address:", contract.address);
   });
 
-  // test inToken ETH, outToken Stablecoin
-  // using oracle ETH vs USD
-  it("should get expected return amount and nrOfDecimals of ETH/USDC", async () => {
-    const oneEth = ethers.utils.parseEther("1");
-    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
-      oneEth.toString(),
-      ETH_ADDRESS,
-      USDC_ADDRESS
-    );
+  // test direct oracle exists
 
-    console.log(
-      "\n\n1 ETH/USDC returnAmount: ",
-      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
-    );
-    console.log("ETH/USDC nrOfDecimals: ", parseInt(nrOfDecimals));
-
-    const oraclePriceEthUsd = await getPriceFromOracle(
-      network.config.oracles[ETH_ADDRESS][USD_ADDRESS]
-    );
-
-    // Desired Return Amount
-    const desiredReturnAmount = oraclePriceEthUsd;
-
-    console.log(`1 ETH is worth ${desiredReturnAmount} USDC`);
-
-    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
-      roundToTwo(desiredReturnAmount)
-    );
-    expect(nrOfDecimals).to.be.equal(6);
-  });
-
-  // test inToken Stablecoin, outToken ETH
-  // using oracle USD vs ETH
+  // using oracle USDC/ETH
   it("should get expected return amount and nrOfDecimals of USDC/ETH", async () => {
     const oneUsdc = 10 ** 6;
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -103,6 +74,9 @@ describe("OracleAggregatorV2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(18);
   });
 
+  // test share oracle
+
+  // using oracles BUSD/ETH and USDC/ETH
   it("should get expected return amount and nrOfDecimals of USDC/BUSD", async () => {
     const oneUsdc = 10 ** 6;
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -116,12 +90,32 @@ describe("OracleAggregatorV2 TEST", async function () {
       returnAmount / Math.pow(10, parseInt(nrOfDecimals))
     );
     console.log("BUSD nrOfDecimals: ", parseInt(nrOfDecimals));
+    const oraclePriceBusdEth = await getPriceFromOracle(
+      network.config.oracles[BUSD_ADDRESS][ETH_ADDRESS]
+    );
 
-    expect(Math.round(returnAmount / Math.pow(10, parseInt(nrOfDecimals)))).to.be.equal(1);
+    const oraclePriceUsdcEth = await getPriceFromOracle(
+      network.config.oracles[USDC_ADDRESS][ETH_ADDRESS]
+    );
+
+    // Desired Return Amount
+    const desiredReturnAmount = oraclePriceBusdEth / oraclePriceUsdcEth;
+
+    console.log(`1 USDC is worth ${desiredReturnAmount} BUSD`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+
+    // assuming both stablecoins are relatively near each other
+    expect(
+      Math.round(returnAmount / Math.pow(10, parseInt(nrOfDecimals)))
+    ).to.be.equal(1);
 
     expect(nrOfDecimals).to.be.equal(18);
   });
 
+  // using oracles UNI/ETH USDC/ETH
   it("should get expected return amount and nrOfDecimals of UNI/USDC", async () => {
     const oneUni = ethers.utils.parseEther("1");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -155,8 +149,7 @@ describe("OracleAggregatorV2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(6);
   });
 
-  // test outToken is ETH, but no direct oracle with inToken
-  // using oracles SXP vs USD and ETH vs USD
+  // using oracles SXP/USD and ETH/USD
   it("should get expected return amount and nrOfDecimals of SXP/ETH", async () => {
     const oneSxp = ethers.utils.parseEther("1");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -190,7 +183,6 @@ describe("OracleAggregatorV2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(18);
   });
 
-  // test neither token ETH or Stablecoin, both tokens have an oracle with ETH
   // using oracles KNC vs ETH and UNI vs ETH
   it("should get expected return amount of KNC/UNI", async () => {
     const oneKnc = ethers.utils.parseEther("1");
@@ -225,8 +217,9 @@ describe("OracleAggregatorV2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(18);
   });
 
-  // test neither token ETH or Stablecoin, one token has oracle vs ETH while other vs USD
-  // using oracles UNI vs ETH, SXP vs USD, and ETH vs USD
+  // test difficult pairs
+
+  // test one token has oracle vs ETH while other vs USD
   it("should get expected return amount of UNI/SXP", async () => {
     const oneUni = ethers.utils.parseEther("1");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -265,8 +258,7 @@ describe("OracleAggregatorV2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(18);
   });
 
-  // test neither token ETH or Stablecoin, one token has oracle vs ETH while other vs USD
-  // using oracles UNI vs ETH, SXP vs USD, and ETH vs USD
+  // test one token has oracle vs ETH while other vs USD
   it("should get expected return amount of SXP/UNI", async () => {
     const oneSxp = ethers.utils.parseEther("1");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -298,6 +290,70 @@ describe("OracleAggregatorV2 TEST", async function () {
       (oraclePriceSxpUsd * oraclePriceUsdEth) / oraclePriceUniEth;
 
     console.log(`1 SXP is worth ${desiredReturnAmount} UNI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  // using oracles ETH/USD USDC/ETH
+  it("should get expected return amount and nrOfDecimals of ETH/USDC", async () => {
+    const oneEth = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneEth.toString(),
+      ETH_ADDRESS,
+      USDC_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 ETH/USDC returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("ETH/USDC nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceUsdcEth = await getPriceFromOracle(
+      network.config.oracles[USDC_ADDRESS][ETH_ADDRESS]
+    );
+
+    // Desired Return Amount
+    const desiredReturnAmount = 1 / oraclePriceUsdcEth; // same as
+
+    console.log(`1 ETH is worth ${desiredReturnAmount} USDC`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(6);
+  });
+
+  // test inToken Stablecoin, outToken ETH
+  // using oracle USDK vs USD, ETH vs USD
+  it("should get expected return amount and nrOfDecimals of USDK/ETH", async () => {
+    const oneUsdk = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneUsdk.toString(),
+      USDK_ADDRESS,
+      ETH_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 USDK/ETH returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceUsdkUsd = await getPriceFromOracle(
+      network.config.oracles[USDK_ADDRESS][USD_ADDRESS]
+    );
+    const oraclePriceEthUsd = await getPriceFromOracle(
+      network.config.oracles[ETH_ADDRESS][USD_ADDRESS]
+    );
+
+    // Desired Return Amount
+    const desiredReturnAmount = oraclePriceUsdkUsd / oraclePriceEthUsd;
+
+    console.log(`1 USDK is worth ${desiredReturnAmount} ETH`);
 
     expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
       roundToTwo(desiredReturnAmount)
@@ -339,38 +395,70 @@ describe("OracleAggregatorV2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(18);
   });
 
-  // test outToken generic USD address
-  it("should get expected return amount of AAVE/USD", async () => {
+  it("should get expected return amount of AAVE/DAI", async () => {
     const oneAave = ethers.utils.parseEther("1");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
       oneAave.toString(),
       AAVE_ADDRESS,
-      USD_ADDRESS
+      DAI_ADDRESS
     );
 
     console.log(
-      "\n\n1 AAVE/USD returnAmount: ",
+      "\n\n1 AAVE/DAI returnAmount: ",
       returnAmount / Math.pow(10, parseInt(nrOfDecimals))
     );
     console.log("USD nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceAaveUsd = await getPriceFromOracle(
+      network.config.oracles[AAVE_ADDRESS][USD_ADDRESS]
+    );
+
+    const oraclePriceDaiUsd = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][USD_ADDRESS]
+    );
+
+    // Desired Return Amount
+    const desiredReturnAmount = oraclePriceAaveUsd / oraclePriceDaiUsd;
+
+    console.log(`1 AAVE is worth ${desiredReturnAmount} DAI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of AAVE/USDC", async () => {
+    const oneAave = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneAave.toString(),
+      AAVE_ADDRESS,
+      USDC_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 AAVE/USDC returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("USDC nrOfDecimals: ", parseInt(nrOfDecimals));
 
     const oraclePriceAaveEth = await getPriceFromOracle(
       network.config.oracles[AAVE_ADDRESS][ETH_ADDRESS]
     );
 
-    const oraclePriceUsdEth = await getPriceFromOracle(
-      network.config.oracles[USD_ADDRESS][ETH_ADDRESS]
+    const oraclePriceUsdcEth = await getPriceFromOracle(
+      network.config.oracles[USDC_ADDRESS][ETH_ADDRESS]
     );
 
     // Desired Return Amount
-    const desiredReturnAmount = oraclePriceAaveEth / oraclePriceUsdEth;
+    const desiredReturnAmount = oraclePriceAaveEth / oraclePriceUsdcEth;
 
-    console.log(`1 USD is worth ${desiredReturnAmount} AAVE`);
+    console.log(`1 AAVE is worth ${desiredReturnAmount} USDC`);
 
     expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
       roundToTwo(desiredReturnAmount)
     );
-    expect(nrOfDecimals).to.be.equal(8);
+    expect(nrOfDecimals).to.be.equal(6);
   });
 
   it("should geth expected return amount of WETH/ETH", async () => {
@@ -387,7 +475,7 @@ describe("OracleAggregatorV2 TEST", async function () {
     );
     console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
   });
-  
+
   it("Owner cannot update existing oracles", async () => {
     // check that we already listed a particular oracle address
     // AAVE <> ETH
@@ -406,23 +494,8 @@ describe("OracleAggregatorV2 TEST", async function () {
         // Random Address
         [UNI_ADDRESS]
       )
-    ).to.be.revertedWith("OracleAggregator: Cannot update oracles");
-  });
-
-  it("Owner cannot update existing stablecoin decimals", async () => {
-    // check that we already listed a particular oracle address
-    // AAVE <> ETH
-    const numDecimals = await contract.nrOfDecimalsUSD(USDC_ADDRESS);
-
-    expect(numDecimals).to.not.be.equal(ethers.constants.Zero);
-
-    // Check that Owner cannot update existing oracles
-    await expect(
-      contract.addStablecoins(
-        [USDC_ADDRESS],
-        // Random Address
-        [100]
-      )
-    ).to.be.revertedWith("OracleAggregator: Cannot update stablecoin decimals");
+    ).to.be.revertedWith(
+      "VM Exception while processing transaction: revert OracleAggregator: Cannot update existing oracles"
+    );
   });
 });

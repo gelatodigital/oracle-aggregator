@@ -19,7 +19,7 @@ async function getPriceFromOracle(oracleAddress) {
   return oraclePrice;
 }
 
-describe("GelatoOracleAggregator TEST", async function () {
+describe("OracleAggregator V1 TEST", async function () {
   var contract, returnAmount, nrOfDecimals;
   const ETH_ADDRESS = network.config.addresses.ethAddress;
   const USD_ADDRESS = network.config.addresses.usdAddress;
@@ -54,7 +54,7 @@ describe("GelatoOracleAggregator TEST", async function () {
       "\n\n1 ETH/USDC returnAmount: ",
       returnAmount / Math.pow(10, parseInt(nrOfDecimals))
     );
-    console.log("ETH/USDC nrOfDecimals: ", parseInt(nrOfDecimals));
+    console.log("USDC nrOfDecimals: ", parseInt(nrOfDecimals));
 
     const oraclePriceEthUsd = await getPriceFromOracle(
       network.config.oracles[ETH_ADDRESS][USD_ADDRESS]
@@ -370,8 +370,8 @@ describe("GelatoOracleAggregator TEST", async function () {
 
     console.log(`1 USD is worth ${desiredReturnAmount} AAVE`);
 
-    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
-      roundToTwo(desiredReturnAmount)
+    expect(Math.round(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      Math.round(desiredReturnAmount)
     );
     expect(nrOfDecimals).to.be.equal(8);
   });
@@ -390,7 +390,7 @@ describe("GelatoOracleAggregator TEST", async function () {
     );
     console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
   });
-  
+
   it("Owner cannot update existing oracles", async () => {
     // check that we already listed a particular oracle address
     // AAVE <> ETH
@@ -410,5 +410,22 @@ describe("GelatoOracleAggregator TEST", async function () {
         [UNI_ADDRESS]
       )
     ).to.be.revertedWith("OracleAggregator: Cannot update oracles");
+  });
+
+  it("Owner cannot update existing stablecoin decimals", async () => {
+    // check that we already listed a particular oracle address
+    // AAVE <> ETH
+    const numDecimals = await contract.nrOfDecimalsUSD(USDC_ADDRESS);
+
+    expect(numDecimals).to.not.be.equal(ethers.constants.Zero);
+
+    // Check that Owner cannot update existing oracles
+    await expect(
+      contract.addStablecoins(
+        [USDC_ADDRESS],
+        // Random Address
+        [100]
+      )
+    ).to.be.revertedWith("OracleAggregator: Cannot update stablecoin decimals");
   });
 });

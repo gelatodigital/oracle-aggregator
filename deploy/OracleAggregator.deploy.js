@@ -12,7 +12,6 @@ module.exports = async (hre) => {
   const { deployments } = hre;
   const { deploy } = deployments;
   const { deployer } = await hre.getNamedAccounts();
-  console.log(deployer);
 
   const {
     tokensA,

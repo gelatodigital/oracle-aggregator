@@ -353,8 +353,4 @@ contract OracleAggregator is Ownable {
                 div
             );
     }
-
-    function generalWDiv(uint256 numerator, uint256 denominator, uint256 decimals) external pure re{
-        return numerator.mul(10**decimals).add(denominator.div(2)).div(y);
-    }
 }
