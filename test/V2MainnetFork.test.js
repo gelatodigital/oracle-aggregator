@@ -22,6 +22,7 @@ async function getPriceFromOracle(oracleAddress) {
 describe("OracleAggregator V2 TEST", async function () {
   var contract, returnAmount, nrOfDecimals;
   const ETH_ADDRESS = network.config.addresses.ethAddress;
+  const BAT_ADDRESS = network.config.addresses.batAddress;
   const USD_ADDRESS = network.config.addresses.usdAddress;
   const BUSD_ADDRESS = network.config.addresses.busdAddress;
   const DAI_ADDRESS = network.config.addresses.daiAddress;
@@ -32,6 +33,9 @@ describe("OracleAggregator V2 TEST", async function () {
   const SXP_ADDRESS = network.config.addresses.sxpAddress;
   const AAVE_ADDRESS = network.config.addresses.aaveAddress;
   const WETH_ADDRESS = network.config.addresses.wethAddress;
+  const ZRX_ADDRESS = network.config.addresses.zrxAddress;
+  const USDT_ADDRESS = network.config.addresses.usdtAddress;
+  const WBTC_ADDRESS = network.config.addresses.wbtcAddress;
 
   this.timeout(0);
 
@@ -437,16 +441,16 @@ describe("OracleAggregator V2 TEST", async function () {
     );
     console.log("USD nrOfDecimals: ", parseInt(nrOfDecimals));
 
-    const oraclePriceAaveUsd = await getPriceFromOracle(
-      network.config.oracles[AAVE_ADDRESS][USD_ADDRESS]
+    const oraclePriceAaveEth = await getPriceFromOracle(
+      network.config.oracles[AAVE_ADDRESS][ETH_ADDRESS]
     );
 
-    const oraclePriceDaiUsd = await getPriceFromOracle(
-      network.config.oracles[DAI_ADDRESS][USD_ADDRESS]
+    const oraclePriceDaiEth = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
     );
 
     // Desired Return Amount
-    const desiredReturnAmount = oraclePriceAaveUsd / oraclePriceDaiUsd;
+    const desiredReturnAmount = oraclePriceAaveEth / oraclePriceDaiEth;
 
     console.log(`1 AAVE is worth ${desiredReturnAmount} DAI`);
 
@@ -489,7 +493,417 @@ describe("OracleAggregator V2 TEST", async function () {
     expect(nrOfDecimals).to.be.equal(6);
   });
 
-  it("should geth expected return amount of WETH/ETH", async () => {
+  it("should get expected return amount of ETH/DAI", async () => {
+    const oneEth = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneEth.toString(),
+      ETH_ADDRESS,
+      DAI_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 ETH/DAI returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("DAI nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const inverseOraclePrice = 1 / oraclePriceEthDai;
+
+    console.log(`1 ETH is worth ${inverseOraclePrice} DAI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(inverseOraclePrice)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of DAI/ETH", async () => {
+    const oneDai = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneDai.toString(),
+      DAI_ADDRESS,
+      ETH_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 DAI/ETH returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    console.log(`1 DAI is worth ${oraclePriceEthDai} ETH`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(oraclePriceEthDai)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of BAT/DAI", async () => {
+    const oneBat = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneBat.toString(),
+      BAT_ADDRESS,
+      DAI_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 BAT/DAI returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("DAI nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceBatEth = await getPriceFromOracle(
+      network.config.oracles[BAT_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceBatEth / oraclePriceEthDai;
+
+    console.log(`1 BAT is worth ${desiredReturnAmount} DAI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of DAI/BAT", async () => {
+    const oneDai = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneDai.toString(),
+      DAI_ADDRESS,
+      BAT_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 DAI/BAT returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("BAT nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceBatEth = await getPriceFromOracle(
+      network.config.oracles[BAT_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceEthDai / oraclePriceBatEth;
+
+    console.log(`1 DAI is worth ${desiredReturnAmount} BAT`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  // ZRX
+  it("should get expected return amount of ZRX/DAI", async () => {
+    const oneBat = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneBat.toString(),
+      ZRX_ADDRESS,
+      DAI_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 ZRX/DAI returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("DAI nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceZrxEth = await getPriceFromOracle(
+      network.config.oracles[ZRX_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceZrxEth / oraclePriceEthDai;
+
+    console.log(`1 ZRX is worth ${desiredReturnAmount} DAI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of DAI/ZRX", async () => {
+    const oneDai = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneDai.toString(),
+      DAI_ADDRESS,
+      ZRX_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 DAI/ZRX returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("ZRX nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceZrxEth = await getPriceFromOracle(
+      network.config.oracles[ZRX_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceEthDai / oraclePriceZrxEth;
+
+    console.log(`1 DAI is worth ${desiredReturnAmount} ZRX`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  // KNC
+  it("should get expected return amount of KNC/DAI", async () => {
+    const oneBat = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneBat.toString(),
+      KNC_ADDRESS,
+      DAI_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 KNC/DAI returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("DAI nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceKncEth = await getPriceFromOracle(
+      network.config.oracles[KNC_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceKncEth / oraclePriceEthDai;
+
+    console.log(`1 KNC is worth ${desiredReturnAmount} DAI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of DAI/KNC", async () => {
+    const oneDai = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneDai.toString(),
+      DAI_ADDRESS,
+      KNC_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 DAI/KNC returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("KNC nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceKncEth = await getPriceFromOracle(
+      network.config.oracles[KNC_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceEthDai / oraclePriceKncEth;
+
+    console.log(`1 DAI is worth ${desiredReturnAmount} KNC`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  // USDT
+  it("should get expected return amount of USDT/DAI", async () => {
+    const oneUsdt = ethers.utils.parseUnits("1", "6");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneUsdt.toString(),
+      USDT_ADDRESS,
+      DAI_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 USDT/DAI returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("DAI nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceUsdtEth = await getPriceFromOracle(
+      network.config.oracles[USDT_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceUsdtEth / oraclePriceEthDai;
+
+    console.log(`1 USDT is worth ${desiredReturnAmount} DAI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of DAI/USDT", async () => {
+    const oneDai = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneDai.toString(),
+      DAI_ADDRESS,
+      USDT_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 DAI/USDT returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("USDT nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceUsdtEth = await getPriceFromOracle(
+      network.config.oracles[USDT_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceEthDai / oraclePriceUsdtEth;
+
+    console.log(`1 DAI is worth ${desiredReturnAmount} USDT`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(6);
+  });
+
+  // WBTC
+  it("should get expected return amount of WBTC/DAI", async () => {
+    const oneWbtc = ethers.utils.parseUnits("1", "8");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneWbtc.toString(),
+      WBTC_ADDRESS,
+      DAI_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 WBTC/DAI returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("DAI nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceWbtcEth = await getPriceFromOracle(
+      network.config.oracles[WBTC_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceWbtcEth / oraclePriceEthDai;
+
+    console.log(`1 WBTC is worth ${desiredReturnAmount} DAI`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(18);
+  });
+
+  it("should get expected return amount of DAI/WBTC", async () => {
+    const oneDai = ethers.utils.parseEther("1");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneDai.toString(),
+      DAI_ADDRESS,
+      WBTC_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 DAI/WBTC returnAmount: ",
+      returnAmount / Math.pow(10, parseFloat(nrOfDecimals))
+    );
+    console.log("WBTC nrOfDecimals: ", parseFloat(nrOfDecimals));
+
+    const oraclePriceEthDai = await getPriceFromOracle(
+      network.config.oracles[DAI_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceWbtcEth = await getPriceFromOracle(
+      network.config.oracles[WBTC_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceEthDai / oraclePriceWbtcEth;
+
+    console.log(`1 DAI is worth ${desiredReturnAmount} WBTC`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(8);
+  });
+
+  it("should get expected return amount of USDC/USDT", async () => {
+    const oneUsdc = ethers.utils.parseUnits("1", "6");
+    [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
+      oneUsdc.toString(),
+      USDC_ADDRESS,
+      USDT_ADDRESS
+    );
+
+    console.log(
+      "\n\n1 USDC/USDT returnAmount: ",
+      returnAmount / Math.pow(10, parseInt(nrOfDecimals))
+    );
+    console.log("USDT nrOfDecimals: ", parseInt(nrOfDecimals));
+
+    const oraclePriceEthUsdc = await getPriceFromOracle(
+      network.config.oracles[USDC_ADDRESS][ETH_ADDRESS]
+    );
+
+    const oraclePriceUsdtEth = await getPriceFromOracle(
+      network.config.oracles[USDT_ADDRESS][ETH_ADDRESS]
+    );
+
+    const desiredReturnAmount = oraclePriceEthUsdc / oraclePriceUsdtEth;
+
+    console.log(`1 USDC is worth ${desiredReturnAmount} USDT`);
+
+    expect(roundToTwo(returnAmount / Math.pow(10, nrOfDecimals))).to.be.equal(
+      roundToTwo(desiredReturnAmount)
+    );
+    expect(nrOfDecimals).to.be.equal(6);
+  });
+
+  it("should geth expected return amount of WETH/X", async () => {
     const oneEth = ethers.utils.parseEther("1");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
       oneEth.toString(),
