@@ -28,6 +28,7 @@ const mainnetAddresses = {
   usdAddress: USD_ADDRESS,
   aaveAddress: "0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9",
   adxAddress: "0xADE00C28244d5CE17D72E40330B1c318cD12B7c3",
+  balAddress: "0xba100000625a3754423978a60c9317c58a424e3D",
   batAddress: "0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
   bnbAddress: "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
   bntAddress: "0x1F573D6Fb3F13d689FF844B4cE37794d79a7FF1C",
@@ -52,6 +53,7 @@ const mainnetAddresses = {
   tusdAddress: "0x0000000000085d4780B73119b644AE5ecd22b376",
   uniAddress: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
   usdcAddress: "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+  usdkAddress: "0x1c48f86ae57291F7686349F12601910BD8D470bb",
   usdtAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
   wethAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
   womAddress: "0xa982B2e19e90b2D9F7948e9C1b65D119F1CE88D6",
@@ -71,10 +73,16 @@ mainnetOracles[mainnetAddresses.ethAddress] = {
 mainnetOracles[mainnetAddresses.aaveAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0x6Df09E975c830ECae5bd4eD9d90f3A95a4f88012",
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0x547a514d5e3769680Ce22B2361c10Ea13619e8a9",
 };
 mainnetOracles[mainnetAddresses.adxAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0x231e764B44b2C1b7Ca171fa8021A24ed520Cde10",
+};
+mainnetOracles[mainnetAddresses.balAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0xC1438AA3823A6Ba0C159CfA8D98dF5A994bA120b",
 };
 mainnetOracles[mainnetAddresses.batAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
@@ -87,6 +95,12 @@ mainnetOracles[mainnetAddresses.bnbAddress] = {
 mainnetOracles[mainnetAddresses.bntAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0xCf61d1841B178fe82C8895fe60c2EDDa08314416",
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0x1E6cF0D433de4FE882A437ABC654F58E1e78548c",
+};
+mainnetOracles[mainnetAddresses.busdAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x614715d2Af89E6EC99A233818275142cE88d1Cfd",
 };
 mainnetOracles[mainnetAddresses.bzrxAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
@@ -101,6 +115,12 @@ mainnetOracles[mainnetAddresses.compAddress] = {
 mainnetOracles[mainnetAddresses.croAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0xcA696a9Eb93b81ADFE6435759A29aB4cf2991A96",
+};
+mainnetOracles[mainnetAddresses.daiAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x773616E4d11A78F511299002da57A0a94577F1f4",
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
 };
 mainnetOracles[mainnetAddresses.dmgAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
@@ -157,13 +177,35 @@ mainnetOracles[mainnetAddresses.snxAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0xDC3EA94CD0AC27d9A86C180091e7f78C683d3699",
 };
+mainnetOracles[mainnetAddresses.susdAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x8e0b7e6062272B5eF4524250bFFF8e5Bd3497757",
+};
 mainnetOracles[mainnetAddresses.sxpAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0xFb0CfD6c19e25DB4a08D8a204a387cEa48Cc138f",
 };
+mainnetOracles[mainnetAddresses.tusdAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x3886BA987236181D98F2401c507Fb8BeA7871dF2",
+};
 mainnetOracles[mainnetAddresses.uniAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0xD6aA3D25116d8dA79Ea0246c4826EB951872e02e",
+};
+mainnetOracles[mainnetAddresses.usdcAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x986b5E1e1755e3C2440e960477f25201B0a8bbD4",
+  
+};
+mainnetOracles[mainnetAddresses.usdkAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xfAC81Ea9Dd29D8E9b212acd6edBEb6dE38Cb43Af",
+};
+mainnetOracles[mainnetAddresses.usdtAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46",
+  
 };
 mainnetOracles[mainnetAddresses.womAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
@@ -250,7 +292,7 @@ module.exports = {
       // timeout: 150000,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-        blockNumber: 11625846,
+        blockNumber: 11702438,
       },
       // Custom
       GelatoCore: "0x1d681d76ce96E4d70a88A00EBbcfc1E47808d0b8",

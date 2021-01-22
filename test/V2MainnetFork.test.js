@@ -19,11 +19,12 @@ async function getPriceFromOracle(oracleAddress) {
   return oraclePrice;
 }
 
-describe("GelatoOracleAggregator TEST", async function () {
+describe("OracleAggregatorV2 TEST", async function () {
   var contract, returnAmount, nrOfDecimals;
   const ETH_ADDRESS = network.config.addresses.ethAddress;
   const USD_ADDRESS = network.config.addresses.usdAddress;
   const BUSD_ADDRESS = network.config.addresses.busdAddress;
+  const DAI_ADDRESS = network.config.addresses.daiAddress;
   const USDC_ADDRESS = network.config.addresses.usdcAddress;
   const KNC_ADDRESS = network.config.addresses.kncAddress;
   const UNI_ADDRESS = network.config.addresses.uniAddress;
@@ -88,7 +89,7 @@ describe("GelatoOracleAggregator TEST", async function () {
     console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
 
     const oraclePriceUsdEth = await getPriceFromOracle(
-      network.config.oracles[USD_ADDRESS][ETH_ADDRESS]
+      network.config.oracles[USDC_ADDRESS][ETH_ADDRESS]
     );
 
     // Desired Return Amount
@@ -102,8 +103,6 @@ describe("GelatoOracleAggregator TEST", async function () {
     expect(nrOfDecimals).to.be.equal(18);
   });
 
-  // test inToken and outToken are both Stablecoins
-  // using oracle USD vs ETH (twice)
   it("should get expected return amount and nrOfDecimals of USDC/BUSD", async () => {
     const oneUsdc = 10 ** 6;
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -118,13 +117,11 @@ describe("GelatoOracleAggregator TEST", async function () {
     );
     console.log("BUSD nrOfDecimals: ", parseInt(nrOfDecimals));
 
-    expect(returnAmount / Math.pow(10, parseInt(nrOfDecimals))).to.be.equal(1);
+    expect(Math.round(returnAmount / Math.pow(10, parseInt(nrOfDecimals)))).to.be.equal(1);
 
     expect(nrOfDecimals).to.be.equal(18);
   });
 
-  // test outToken is Stablecoin, but no direct oracle with inToken
-  // using oracles UNI vs ETH and USD vs ETH
   it("should get expected return amount and nrOfDecimals of UNI/USDC", async () => {
     const oneUni = ethers.utils.parseEther("1");
     [returnAmount, nrOfDecimals] = await contract.getExpectedReturnAmount(
@@ -143,12 +140,12 @@ describe("GelatoOracleAggregator TEST", async function () {
       network.config.oracles[UNI_ADDRESS][ETH_ADDRESS]
     );
 
-    const oraclePriceUsdEth = await getPriceFromOracle(
-      network.config.oracles[USD_ADDRESS][ETH_ADDRESS]
+    const oraclePriceUsdcEth = await getPriceFromOracle(
+      network.config.oracles[USDC_ADDRESS][ETH_ADDRESS]
     );
 
     // Desired Return Amount
-    const desiredReturnAmount = oraclePriceUniEth / oraclePriceUsdEth;
+    const desiredReturnAmount = oraclePriceUniEth / oraclePriceUsdcEth;
 
     console.log(`1 UNI is worth ${desiredReturnAmount} USDC`);
 
@@ -389,5 +386,43 @@ describe("GelatoOracleAggregator TEST", async function () {
       returnAmount / Math.pow(10, parseInt(nrOfDecimals))
     );
     console.log("ETH nrOfDecimals: ", parseInt(nrOfDecimals));
+  });
+  
+  it("Owner cannot update existing oracles", async () => {
+    // check that we already listed a particular oracle address
+    // AAVE <> ETH
+    const oracleAddress = await contract.tokenPairAddress(
+      AAVE_ADDRESS,
+      ETH_ADDRESS
+    );
+
+    expect(oracleAddress).to.not.be.equal(ethers.constants.AddressZero);
+
+    // Check that Owner cannot update existing oracles
+    await expect(
+      contract.addTokens(
+        [AAVE_ADDRESS],
+        [ETH_ADDRESS],
+        // Random Address
+        [UNI_ADDRESS]
+      )
+    ).to.be.revertedWith("OracleAggregator: Cannot update oracles");
+  });
+
+  it("Owner cannot update existing stablecoin decimals", async () => {
+    // check that we already listed a particular oracle address
+    // AAVE <> ETH
+    const numDecimals = await contract.nrOfDecimalsUSD(USDC_ADDRESS);
+
+    expect(numDecimals).to.not.be.equal(ethers.constants.Zero);
+
+    // Check that Owner cannot update existing oracles
+    await expect(
+      contract.addStablecoins(
+        [USDC_ADDRESS],
+        // Random Address
+        [100]
+      )
+    ).to.be.revertedWith("OracleAggregator: Cannot update stablecoin decimals");
   });
 });
