@@ -3,6 +3,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-waffle");
 require("hardhat-deploy");
 require("hardhat-deploy-ethers");
+require("solidity-coverage");
 
 // Libraries
 const assert = require("assert");
@@ -284,6 +285,11 @@ const rinkebyAddressBook = {
  */
 module.exports = {
   defaultNetwork: "hardhat",
+  gasReporter: {
+    enabled: process.env.REPORT_GAS ? true : false,
+    maxMethodDiff: 25,
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+  },
   // hardhat-deploy
   namedAccounts: {
     deployer: {
@@ -329,12 +335,12 @@ module.exports = {
           optimizer: { enabled: process.env.DEBUG ? false : true },
         },
       },
-      {
-        version: "0.7.4",
-        settings: {
-          optimizer: { enabled: process.env.DEBUG ? false : true },
-        },
-      },
+      // {
+      //   version: "0.7.4",
+      //   settings: {
+      //     optimizer: { enabled: process.env.DEBUG ? false : true },
+      //   },
+      // },
     ],
     // overrides: {
     //   "contracts/vendor/DependenciesSix.sol": {
