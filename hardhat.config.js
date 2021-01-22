@@ -56,6 +56,7 @@ const mainnetAddresses = {
   usdkAddress: "0x1c48f86ae57291F7686349F12601910BD8D470bb",
   usdtAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
   wethAddress: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+  wbtcAddress: "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
   womAddress: "0xa982B2e19e90b2D9F7948e9C1b65D119F1CE88D6",
   yfiAddress: "0x0bc529c00C6401aEF6D220BE8C6Ea1667F6Ad93e",
   zrxAddress: "0xE41d2489571d322189246DaFA5ebDe1F4699F498",
@@ -205,10 +206,17 @@ mainnetOracles[mainnetAddresses.usdtAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0xEe9F2375b4bdF6387aa8265dD4FB8F16512A1d46",
 };
+mainnetOracles[mainnetAddresses.wbtcAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0xdeb288F737066589598e9214E782fa5A8eD689e8",
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
+};
 mainnetOracles[mainnetAddresses.womAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0xcEBD2026d3C99F2a7CE028acf372C154aB4638a9",
 };
+
 mainnetOracles[mainnetAddresses.yfiAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
     "0x7c5d4F8345e66f68099581Db340cd65B078C41f4",

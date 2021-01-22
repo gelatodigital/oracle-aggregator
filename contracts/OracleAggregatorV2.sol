@@ -110,6 +110,20 @@ contract OracleAggregatorV2 is Ownable {
                     outDecimals,
                     outDecimals
                 );
+        } else if (tokenPairAddress[outToken][inToken] != address(0)) {
+            // Inverse of simple oracle exists for this token pair
+            return
+                _computeReturnAmount(
+                    amountIn,
+                    _div(
+                        10**inDecimals,
+                        _getRate(outToken, inToken),
+                        inDecimals
+                    ),
+                    inDecimals,
+                    inDecimals,
+                    outDecimals
+                );
         }
 
         // No simple Oracle exists for this token pair
@@ -135,7 +149,7 @@ contract OracleAggregatorV2 is Ownable {
                 _div(priceOutUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
             price = _div(priceInEth, priceOutEth, ETH_DECIMALS);
             priceDecimals = ETH_DECIMALS;
-        } else {
+        } else if (pairA == USD && pairB == ETH) {
             // inToken has Oracle with USD, outToken has Oracle with ETH
             uint256 priceInUsd = _getRate(inToken, pairA);
             uint256 priceEthUsd = _getRate(pairB, pairA);
@@ -144,6 +158,9 @@ contract OracleAggregatorV2 is Ownable {
                 _div(priceInUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
             price = _div(priceInEth, priceOutEth, ETH_DECIMALS);
             priceDecimals = ETH_DECIMALS;
+        } else {
+            // wrong pairs
+            return 0;
         }
 
         return
@@ -203,7 +220,20 @@ contract OracleAggregatorV2 is Ownable {
         returns (uint256)
     {
         IOracle priceFeed = IOracle(tokenPairAddress[inToken][outToken]);
-        return uint256(priceFeed.latestAnswer());
+        int256 price = priceFeed.latestAnswer();
+        require(price > 0, "OracleAggregator: Price negative");
+        return uint256(price);
+    }
+
+    function _getRateAndOracleDecimals(address inToken, address outToken)
+        private
+        view
+        returns (uint256, uint256)
+    {
+        IOracle priceFeed = IOracle(tokenPairAddress[inToken][outToken]);
+        int256 price = priceFeed.latestAnswer();
+        require(price > 0, "OracleAggregator: Price negative");
+        return (uint256(price), priceFeed.decimals());
     }
 
     /// @dev check the available oracles for token a & b
@@ -214,15 +244,15 @@ contract OracleAggregatorV2 is Ownable {
         returns (address, address)
     {
         if (
-            tokenPairAddress[inToken][USD] != address(0) &&
-            tokenPairAddress[outToken][USD] != address(0)
-        ) {
-            return (USD, USD);
-        } else if (
             tokenPairAddress[inToken][ETH] != address(0) &&
             tokenPairAddress[outToken][ETH] != address(0)
         ) {
             return (ETH, ETH);
+        } else if (
+            tokenPairAddress[inToken][USD] != address(0) &&
+            tokenPairAddress[outToken][USD] != address(0)
+        ) {
+            return (USD, USD);
         } else if (
             tokenPairAddress[inToken][ETH] != address(0) &&
             tokenPairAddress[outToken][USD] != address(0)
