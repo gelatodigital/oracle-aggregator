@@ -1,23 +1,6 @@
 const { ethers, deployments, network } = require("hardhat");
 const { expect } = require("chai");
-
-function roundToTwo(num) {
-  return +(Math.round(num + "e+2") + "e-2");
-}
-
-async function getPriceFromOracle(oracleAddress) {
-  const ChainlinkOracle = await ethers.getContractAt(
-    "contracts/interfaces/AggregatorV3Interface.sol:AggregatorV3Interface",
-    oracleAddress
-  );
-
-  const oracleData = await ChainlinkOracle.latestRoundData();
-  const oracleDecimals = await ChainlinkOracle.decimals();
-  const oraclePrice =
-    parseInt(oracleData.answer) / Math.pow(10, parseInt(oracleDecimals));
-
-  return oraclePrice;
-}
+const { roundToTwo, getPriceFromOracle } = require("./helper");
 
 describe("OracleAggregator V1 TEST", async function () {
   var contract, returnAmount, nrOfDecimals;
