@@ -1,5 +1,5 @@
 const { sleep } = require("@gelatonetwork/core");
-const { getAggregatedOraclesV2 } = require("../test/helper");
+const { getAggregatedOracles } = require("../test/helper");
 
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
@@ -13,7 +13,7 @@ module.exports = async (hre) => {
   const { deploy } = deployments;
   const { deployer } = await hre.getNamedAccounts();
 
-  const { tokensA, tokensB, oracles } = getAggregatedOraclesV2();
+  const { tokensA, tokensB, oracles } = getAggregatedOracles();
 
   await deploy("OracleAggregator", {
     from: deployer,
