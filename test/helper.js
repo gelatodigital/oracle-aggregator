@@ -3,10 +3,12 @@ const { ethers, network } = require("hardhat");
 const ETH_ADDRESS = network.config.addresses.ethAddress;
 const USD_ADDRESS = network.config.addresses.usdAddress;
 
-module.exports.getAggregatedOraclesV2 = () => {
+module.exports.getAggregatedOracles = () => {
   let oracleTokens;
 
   if (network.name == "hardhat" || network.name == "mainnet") {
+    oracleTokens = Object.values(network.config.addresses);
+  } else if (network.name == "rinkeby") {
     oracleTokens = Object.values(network.config.addresses);
   } else {
     throw Error(`unsupported network ${network.name}`);
@@ -16,10 +18,8 @@ module.exports.getAggregatedOraclesV2 = () => {
   let tokensB = [];
   let oracles = [];
   for (let i = 0; i < oracleTokens.length; i++) {
-    if (oracleTokens[i] == network.config.addresses.wethAddress) {
-      continue;
-    }
     if (
+      network.config.oracles[oracleTokens[i]] &&
       network.config.oracles[oracleTokens[i]][
         network.config.addresses.ethAddress
       ]
@@ -34,6 +34,7 @@ module.exports.getAggregatedOraclesV2 = () => {
     }
 
     if (
+      network.config.oracles[oracleTokens[i]] &&
       network.config.oracles[oracleTokens[i]][
         network.config.addresses.usdAddress
       ]
@@ -49,110 +50,6 @@ module.exports.getAggregatedOraclesV2 = () => {
   }
 
   return { tokensA, tokensB, oracles };
-};
-
-module.exports.getAggregatedOraclesV1 = () => {
-  let stablecoins;
-  let decimals;
-  let oracleTokens;
-
-  if (network.name == "hardhat" || network.name == "mainnet") {
-    stablecoins = [
-      network.config.addresses.usdAddress,
-      network.config.addresses.usdcAddress,
-      network.config.addresses.usdtAddress,
-      network.config.addresses.daiAddress,
-      network.config.addresses.busdAddress,
-      network.config.addresses.susdAddress,
-      network.config.addresses.tusdAddress,
-    ];
-
-    decimals = [8, 6, 6, 18, 18, 18, 18];
-
-    oracleTokens = [
-      network.config.addresses.usdAddress,
-      network.config.addresses.ethAddress,
-      network.config.addresses.aaveAddress,
-      network.config.addresses.adxAddress,
-      network.config.addresses.batAddress,
-      network.config.addresses.bnbAddress,
-      network.config.addresses.bntAddress,
-      network.config.addresses.bzrxAddress,
-      network.config.addresses.compAddress,
-      network.config.addresses.croAddress,
-      network.config.addresses.dmgAddress,
-      network.config.addresses.enjAddress,
-      network.config.addresses.kncAddress,
-      network.config.addresses.linkAddress,
-      network.config.addresses.lrcAddress,
-      network.config.addresses.manaAddress,
-      network.config.addresses.mkrAddress,
-      network.config.addresses.nmrAddress,
-      network.config.addresses.renAddress,
-      network.config.addresses.repAddress,
-      network.config.addresses.snxAddress,
-      network.config.addresses.sxpAddress,
-      network.config.addresses.uniAddress,
-      network.config.addresses.womAddress,
-      network.config.addresses.yfiAddress,
-      network.config.addresses.zrxAddress,
-    ];
-  } else if (network.name == "rinkeby") {
-    stablecoins = [
-      network.config.addresses.usdAddress,
-      network.config.addresses.usdcAddress,
-      network.config.addresses.daiAddress,
-    ];
-
-    decimals = [8, 6, 18];
-
-    oracleTokens = [
-      network.config.addresses.usdAddress,
-      network.config.addresses.ethAddress,
-      network.config.addresses.batAddress,
-      network.config.addresses.linkAddress,
-      network.config.addresses.repAddress,
-      network.config.addresses.snxAddress,
-      network.config.addresses.zrxAddress,
-    ];
-  } else {
-    throw Error(`unsupported network ${network.name}`);
-  }
-
-  let tokensA = [];
-  let tokensB = [];
-  let oracles = [];
-  for (let i = 0; i < oracleTokens.length; i++) {
-    if (
-      network.config.oracles[oracleTokens[i]][
-        network.config.addresses.ethAddress
-      ]
-    ) {
-      tokensA.push(oracleTokens[i]);
-      tokensB.push(network.config.addresses.ethAddress);
-      oracles.push(
-        network.config.oracles[oracleTokens[i]][
-          network.config.addresses.ethAddress
-        ]
-      );
-    }
-
-    if (
-      network.config.oracles[oracleTokens[i]][
-        network.config.addresses.usdAddress
-      ]
-    ) {
-      tokensA.push(oracleTokens[i]);
-      tokensB.push(network.config.addresses.usdAddress);
-      oracles.push(
-        network.config.oracles[oracleTokens[i]][
-          network.config.addresses.usdAddress
-        ]
-      );
-    }
-  }
-
-  return { tokensA, tokensB, oracles, stablecoins, decimals };
 };
 
 module.exports.getAllTestPairs = () => {
@@ -173,10 +70,6 @@ module.exports.getAllTestPairs = () => {
   }
 
   return pairs;
-};
-
-module.exports.roundToTwo = (num) => {
-  return +(Math.round(num + "e+2") + "e-2");
 };
 
 const getPriceFromOracle = async (oracleAddress) => {
@@ -264,6 +157,10 @@ module.exports.computeChainlinkPrice = async (inToken, outToken) => {
   }
 
   throw Error("no route found");
+};
+
+module.exports.roundToTwo = (num) => {
+  return +(Math.round(num + "e+2") + "e-2");
 };
 
 let symbols = {};
