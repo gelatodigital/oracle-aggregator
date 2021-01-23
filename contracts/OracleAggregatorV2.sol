@@ -51,7 +51,7 @@ contract OracleAggregatorV2 is Ownable {
         for (uint256 i = 0; i < _inTokens.length; i++) {
             require(
                 tokenPairAddress[_inTokens[i]][_outTokens[i]] == address(0),
-                "OracleAggregator: Cannot update existing oracles"
+                "OracleAggregator: Cannot update oracles"
             );
             tokenPairAddress[_inTokens[i]][_outTokens[i]] = _oracles[i];
         }

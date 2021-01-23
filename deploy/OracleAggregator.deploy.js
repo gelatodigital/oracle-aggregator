@@ -1,5 +1,5 @@
 const { sleep } = require("@gelatonetwork/core");
-const { getAggregatedOracles } = require("../test/helper");
+const { getAggregatedOraclesV1 } = require("../test/helper");
 
 module.exports = async (hre) => {
   if (hre.network.name === "mainnet") {
@@ -19,7 +19,7 @@ module.exports = async (hre) => {
     oracles,
     stablecoins,
     decimals,
-  } = getAggregatedOracles();
+  } = getAggregatedOraclesV1();
 
   await deploy("OracleAggregator", {
     from: deployer,
