@@ -258,6 +258,12 @@ rinkebyOracles[rinkebyAddresses.batAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0x031dB56e01f82f20803059331DC6bEe9b17F7fC9",
 };
+rinkebyOracles[rinkebyAddresses.daiAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0x2bA49Aaa16E6afD2a993473cfB70Fa8559B523cF",
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D",
+};
 rinkebyOracles[rinkebyAddresses.linkAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0xd8bD0a1cB028a31AA859A21A3758685a95dE4623",
@@ -269,6 +275,12 @@ rinkebyOracles[rinkebyAddresses.repAddress] = {
 rinkebyOracles[rinkebyAddresses.snxAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0xE96C4407597CD507002dF88ff6E0008AB41266Ee",
+};
+rinkebyOracles[rinkebyAddresses.usdcAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0xa24de01df22b63d23Ebc1882a5E3d4ec0d907bFB",
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0xdCA36F27cbC4E38aE16C4E9f99D39b42337F6dcf",
 };
 rinkebyOracles[rinkebyAddresses.zrxAddress] = {
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
