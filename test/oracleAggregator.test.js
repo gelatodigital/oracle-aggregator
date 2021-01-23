@@ -12,7 +12,7 @@ describe("OracleAggregator V2 TEST", async function () {
 
   before(async function () {
     await deployments.fixture();
-    contract = await ethers.getContract("OracleAggregatorV2");
+    contract = await ethers.getContract("OracleAggregator");
     console.log("❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆❆");
     console.log("🔵Contract address:", contract.address);
   });

@@ -12,33 +12,29 @@ contract OracleAggregator is Ownable {
 
     // solhint-disable var-name-mixedcase
     address public constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+    uint256 public constant ETH_DECIMALS = 18;
 
     // solhint-disable var-name-mixedcase
     address public constant USD = 0x7354C81fbCb229187480c4f497F945C6A312d5C3;
+    uint256 public constant USD_DECIMALS = 8;
 
     // solhint-disable var-name-mixedcase
-    string public constant VERSION = "v1.0.0";
+    string public constant VERSION = "v2.0.0";
 
     address public immutable WETH;
 
     mapping(address => mapping(address => address)) public tokenPairAddress;
-    mapping(address => uint256) public nrOfDecimalsUSD;
 
     // solhint-disable function-max-lines
     constructor(
         address _weth,
         address[] memory _inTokens,
         address[] memory _outTokens,
-        address[] memory _oracles,
-        address[] memory _stablecoins,
-        uint256[] memory _decimals
+        address[] memory _oracles
     ) public {
         WETH = _weth;
         addTokens(_inTokens, _outTokens, _oracles);
-        addStablecoins(_stablecoins, _decimals);
-        // required token pairs
         require(tokenPairAddress[ETH][USD] != address(0));
-        require(tokenPairAddress[USD][ETH] != address(0));
     }
 
     function addTokens(
@@ -61,20 +57,6 @@ contract OracleAggregator is Ownable {
         }
     }
 
-    function addStablecoins(
-        address[] memory _stablecoins,
-        uint256[] memory _decimals
-    ) public onlyOwner {
-        require(_stablecoins.length == _decimals.length);
-        for (uint256 i = 0; i < _stablecoins.length; i++) {
-            require(
-                nrOfDecimalsUSD[_stablecoins[i]] == uint256(0),
-                "OracleAggregator: Cannot update stablecoin decimals"
-            );
-            nrOfDecimalsUSD[_stablecoins[i]] = _decimals[i];
-        }
-    }
-
     // solhint-disable function-max-lines
     // solhint-disable code-complexity
     /// @dev expected return amount of outToken from amountIn of inToken
@@ -82,7 +64,7 @@ contract OracleAggregator is Ownable {
         uint256 amountIn,
         address inToken,
         address outToken
-    ) public view returns (uint256 returnAmount, uint256 outTokenDecimals) {
+    ) public view returns (uint256 returnAmount, uint256 returnDecimals) {
         // sanity checks
         require(amountIn > 0, "OracleAggregator: amountIn is Zero");
         require(inToken != address(0), "OracleAggregator: inToken is Zero");
@@ -96,143 +78,151 @@ contract OracleAggregator is Ownable {
             outToken = ETH;
         }
 
-        // decimals of inToken
-        uint256 inTokenDecimals;
-        (inTokenDecimals, outTokenDecimals) = _getDecimals(inToken, outToken);
-
-        // store outToken address if it is a stablecoin
-        address stableCoinAddress =
-            nrOfDecimalsUSD[outToken] > 0 ? outToken : address(0);
-
-        // convert any stablecoin addresses to USD address
-        (inToken, outToken) = _convertUSD(inToken, outToken);
-
-        if (outToken == ETH || outToken == USD) {
-            // when outToken is ETH or USD
-            returnAmount = _handleConvertToEthOrUsd(
-                amountIn,
-                inToken,
-                outToken,
-                inTokenDecimals,
-                stableCoinAddress
-            );
+        returnDecimals = _getDecimals(outToken);
+        if (inToken == outToken) {
+            returnAmount = amountIn;
         } else {
-            // when outToken is not ETH or USD
-            returnAmount = _handleConvertToToken(
+            uint256 inDecimals = _getDecimals(inToken);
+            returnAmount = _getExpectedReturnAmount(
                 amountIn,
                 inToken,
                 outToken,
-                inTokenDecimals
+                inDecimals,
+                returnDecimals
             );
         }
-
-        return (returnAmount, outTokenDecimals);
     }
 
-    function _handleConvertToEthOrUsd(
+    function _getExpectedReturnAmount(
         uint256 amountIn,
         address inToken,
         address outToken,
-        uint256 inTokenDecimals,
-        address stableCoinAddress
-    ) private view returns (uint256 returnAmount) {
-        // oracle of inToken vs outToken exists
-        // e.g. calculating KNC/ETH
-        // and KNC/ETH oracle exists
+        uint256 inDecimals,
+        uint256 outDecimals
+    ) private view returns (uint256) {
+        // Simple Oracle exists for this token pair
         if (tokenPairAddress[inToken][outToken] != address(0)) {
-            (uint256 price, uint256 nrOfDecimals) = _getRate(inToken, outToken);
-            returnAmount = stableCoinAddress != address(0)
-                ? _matchStableCoinDecimal(
-                    stableCoinAddress,
+            return
+                _computeReturnAmount(
                     amountIn,
-                    nrOfDecimals,
-                    0,
-                    price,
-                    1
-                )
-                : amountIn.mul(price);
+                    _getRate(inToken, outToken),
+                    inDecimals,
+                    outDecimals,
+                    outDecimals
+                );
+        } else if (tokenPairAddress[outToken][inToken] != address(0)) {
+            // Inverse of simple oracle exists for this token pair
+            return
+                _computeReturnAmount(
+                    amountIn,
+                    _div(
+                        10**inDecimals,
+                        _getRate(outToken, inToken),
+                        inDecimals
+                    ),
+                    inDecimals,
+                    inDecimals,
+                    outDecimals
+                );
+        }
 
-            return returnAmount.div(10**inTokenDecimals);
+        // No simple Oracle exists for this token pair
+        uint256 price;
+        uint256 priceDecimals;
+        (address pairA, address pairB) = _checkAvailablePair(inToken, outToken);
+
+        if (pairA == address(0) || pairB == address(0)) {
+            // No route to compute price
+            return 0;
+        } else if (pairA == pairB) {
+            // Tokens in pair both have an Oracle vs same third token (USD or ETH)
+            uint256 priceA = _getRate(inToken, pairA);
+            uint256 priceB = _getRate(outToken, pairB);
+            priceDecimals = pairA == ETH ? ETH_DECIMALS : USD_DECIMALS;
+            price = _div(priceA, priceB, priceDecimals);
+        } else if (pairA == ETH && pairB == USD) {
+            // inToken has Oracle with ETH, outToken has Oracle with USD
+            uint256 priceInEth = _getRate(inToken, pairA);
+            uint256 priceEthUsd = _getRate(pairA, pairB);
+            uint256 priceOutUsd = _getRate(outToken, pairB);
+            uint256 priceOutEth =
+                _div(priceOutUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
+            price = _div(priceInEth, priceOutEth, ETH_DECIMALS);
+            priceDecimals = ETH_DECIMALS;
+        } else if (pairA == USD && pairB == ETH) {
+            // inToken has Oracle with USD, outToken has Oracle with ETH
+            uint256 priceInUsd = _getRate(inToken, pairA);
+            uint256 priceEthUsd = _getRate(pairB, pairA);
+            uint256 priceOutEth = _getRate(outToken, pairB);
+            uint256 priceInEth =
+                _div(priceInUsd, priceEthUsd, USD_DECIMALS).mul(10**10);
+            price = _div(priceInEth, priceOutEth, ETH_DECIMALS);
+            priceDecimals = ETH_DECIMALS;
         } else {
-            // direct oracle of inToken vs outToken does not exist
-            // e.g. calculating UNI/USD
-            // UNI/ETH and USD/ETH oracles available
-            (address pairA, address pairB) =
-                _checkAvailablePair(inToken, outToken);
-            if (pairA == address(0) && pairB == address(0)) return (0);
-            (uint256 priceA, ) = _getRate(inToken, pairA);
-            (uint256 priceB, uint256 nrOfDecimals) = _getRate(outToken, pairB);
+            // wrong pairs
+            return 0;
+        }
 
-            nrOfDecimals = stableCoinAddress != address(0)
-                ? nrOfDecimalsUSD[stableCoinAddress]
-                : nrOfDecimals;
-
-            returnAmount = amountIn.mul(priceA.mul(10**nrOfDecimals)).div(
-                priceB
+        return
+            _computeReturnAmount(
+                amountIn,
+                price,
+                inDecimals,
+                priceDecimals,
+                outDecimals
             );
-            if (outToken != ETH) {
-                return returnAmount.div(10**inTokenDecimals);
-            } else {
-                return returnAmount.div(10**nrOfDecimalsUSD[USD]);
-            }
+    }
+
+    function _computeReturnAmount(
+        uint256 amountIn,
+        uint256 price,
+        uint256 inDecimals,
+        uint256 priceDecimals,
+        uint256 outDecimals
+    ) private pure returns (uint256) {
+        uint256 rawReturnAmount;
+        uint256 rawReturnDecimals;
+        if (inDecimals == priceDecimals) {
+            rawReturnAmount = _mul(amountIn, price, priceDecimals);
+            rawReturnDecimals = priceDecimals;
+        } else if (priceDecimals > inDecimals) {
+            uint256 decimalDiff = priceDecimals.sub(inDecimals);
+            rawReturnAmount = _mul(
+                amountIn.mul(10**decimalDiff),
+                price,
+                priceDecimals
+            );
+            rawReturnDecimals = priceDecimals;
+        } else {
+            uint256 decimalDiff = inDecimals.sub(priceDecimals);
+            rawReturnAmount = _mul(
+                amountIn,
+                price.mul(10**decimalDiff),
+                inDecimals
+            );
+            rawReturnDecimals = inDecimals;
+        }
+
+        if (rawReturnDecimals == outDecimals) {
+            return rawReturnAmount;
+        } else if (outDecimals > rawReturnDecimals) {
+            uint256 decimalDiff = outDecimals.sub(rawReturnDecimals);
+            return rawReturnAmount.mul(10**decimalDiff);
+        } else {
+            uint256 decimalDiff = rawReturnDecimals.sub(outDecimals);
+            return rawReturnAmount.div(10**decimalDiff);
         }
     }
 
-    function _handleConvertToToken(
-        uint256 amountIn,
-        address inToken,
-        address outToken,
-        uint256 inTokenDecimals
-    ) private view returns (uint256 returnAmount) {
-        (address pairA, address pairB) = _checkAvailablePair(inToken, outToken);
-        if (pairA == address(0) && pairB == address(0)) return (0);
-        // oracle of inToken/ETH, outToken/ETH || inToken/USD, outToken/USD exists
-        // e.g. calculating KNC/UNI where
-        // KNC/ETH and UNI/ETH oracles available
-        if (pairA == pairB) {
-            (uint256 priceA, uint256 nrOfDecimals) = _getRate(inToken, pairA);
-
-            (uint256 priceB, ) = _getRate(outToken, pairB);
-
-            returnAmount = amountIn.mul(priceA.mul(10**nrOfDecimals)).div(
-                priceB
-            );
-            if (pairA == ETH) {
-                return returnAmount.div(10**inTokenDecimals);
-            } else {
-                return returnAmount.div(10**nrOfDecimalsUSD[USD]);
-            }
-        } else if (pairA == ETH && pairB == USD) {
-            // oracle of inToken/ETH and outToken/USD exists
-            // e.g. calculating UNI/SXP where
-            // UNI/ETH and SXP/USD oracles available
-            (uint256 priceA, ) = _getRate(inToken, pairA);
-            (uint256 priceETHUSD, ) = _getRate(ETH, USD);
-            (uint256 priceB, ) = _getRate(outToken, pairB);
-
-            returnAmount = amountIn.mul(priceA.mul(priceETHUSD)).div(priceB);
-            return returnAmount.div(10**inTokenDecimals);
-        } else if (pairA == USD && pairB == ETH) {
-            // oracle of inToken/USD and outToken/ETH exists
-            // e.g. calculating SXP/UNI where
-            // SXP/USD and UNI/ETH oracles available
-            uint256 numerator;
-            {
-                (uint256 priceA, uint256 nrOfDecimals) =
-                    _getRate(inToken, pairA);
-
-                (uint256 priceUSDETH, uint256 nrOfDecimalsUSDETH) =
-                    _getRate(USD, ETH);
-
-                numerator = priceUSDETH
-                    .mul(10**(nrOfDecimalsUSDETH.sub(nrOfDecimals)))
-                    .mul(priceA)
-                    .div(10**nrOfDecimalsUSDETH);
-            }
-            (uint256 priceB, ) = _getRate(outToken, pairB);
-            returnAmount = amountIn.mul(numerator).div(priceB);
-            return returnAmount;
-        }
+    function _getRate(address inToken, address outToken)
+        private
+        view
+        returns (uint256)
+    {
+        IOracle priceFeed = IOracle(tokenPairAddress[inToken][outToken]);
+        int256 price = priceFeed.latestAnswer();
+        require(price > 0, "OracleAggregator: Price negative");
+        return uint256(price);
     }
 
     /// @dev check the available oracles for token a & b
@@ -243,15 +233,15 @@ contract OracleAggregator is Ownable {
         returns (address, address)
     {
         if (
-            tokenPairAddress[inToken][USD] != address(0) &&
-            tokenPairAddress[outToken][USD] != address(0)
-        ) {
-            return (USD, USD);
-        } else if (
             tokenPairAddress[inToken][ETH] != address(0) &&
             tokenPairAddress[outToken][ETH] != address(0)
         ) {
             return (ETH, ETH);
+        } else if (
+            tokenPairAddress[inToken][USD] != address(0) &&
+            tokenPairAddress[outToken][USD] != address(0)
+        ) {
+            return (USD, USD);
         } else if (
             tokenPairAddress[inToken][ETH] != address(0) &&
             tokenPairAddress[outToken][USD] != address(0)
@@ -267,90 +257,32 @@ contract OracleAggregator is Ownable {
         }
     }
 
-    function _getDecimals(address inToken, address _outToken)
-        private
-        view
-        returns (uint256 inTokenDecimals, uint256 outTokenDecimals)
-    {
-        // decimals of inToken
-        if (inToken != ETH && inToken != USD) {
-            try ERC20(inToken).decimals() returns (uint8 _inputDecimals) {
-                inTokenDecimals = uint256(_inputDecimals);
+    function _getDecimals(address token) private view returns (uint256) {
+        if (token != ETH && token != USD) {
+            try ERC20(token).decimals() returns (uint8 _decimals) {
+                return uint256(_decimals);
             } catch {
                 revert("OracleAggregator: ERC20.decimals() revert");
             }
-        } else {
-            if (inToken != ETH) {
-                inTokenDecimals = nrOfDecimalsUSD[USD];
-            } else {
-                inTokenDecimals = 18;
-            }
         }
 
-        // decimals of outToken
-        if (_outToken != ETH && _outToken != USD) {
-            try ERC20(_outToken).decimals() returns (uint8 _outputDecimals) {
-                outTokenDecimals = uint256(_outputDecimals);
-            } catch {
-                revert("OracleAggregator: ERC20.decimals() revert");
-            }
-        } else {
-            if (_outToken != ETH) {
-                outTokenDecimals = nrOfDecimalsUSD[USD];
-            } else {
-                outTokenDecimals = 18;
-            }
-        }
+        return token == ETH ? ETH_DECIMALS : USD_DECIMALS;
     }
 
-    function _getRate(address inToken, address outToken)
-        private
-        view
-        returns (uint256 tokenPrice, uint256 nrOfDecimals)
-    {
-        if (inToken == outToken) {
-            return (1, 0);
-        } else {
-            IOracle priceFeed = IOracle(tokenPairAddress[inToken][outToken]);
-            tokenPrice = uint256(priceFeed.latestAnswer());
-            nrOfDecimals = priceFeed.decimals();
-        }
+    function _div(
+        uint256 x,
+        uint256 y,
+        uint256 decimals
+    ) private pure returns (uint256) {
+        return x.mul(10**decimals).add(y.div(2)).div(y);
     }
 
-    /// @dev converting all usd pegged stablecoins to single USD address
-    function _convertUSD(address inToken, address outToken)
-        private
-        view
-        returns (address, address)
-    {
-        if (nrOfDecimalsUSD[inToken] > 0 && nrOfDecimalsUSD[outToken] > 0) {
-            return (USD, USD);
-        } else if (nrOfDecimalsUSD[inToken] > 0) {
-            return (USD, outToken);
-        } else if (nrOfDecimalsUSD[outToken] > 0) {
-            return (inToken, USD);
-        } else {
-            return (inToken, outToken);
-        }
-    }
-
-    /// @dev modify nrOfDecimlas and amount to follow stableCoin's nrOfDecimals
-    function _matchStableCoinDecimal(
-        address stableCoinAddress,
-        uint256 amount,
-        uint256 nrOfDecimals,
-        uint256 padding,
-        uint256 returnRateA,
-        uint256 returnRateB
-    ) private view returns (uint256 returnAmount) {
-        uint256 div =
-            nrOfDecimalsUSD[stableCoinAddress] > nrOfDecimals
-                ? 10**(nrOfDecimalsUSD[stableCoinAddress].sub(nrOfDecimals))
-                : 10**(nrOfDecimals.sub(nrOfDecimalsUSD[stableCoinAddress]));
-        returnAmount = nrOfDecimalsUSD[stableCoinAddress] > nrOfDecimals
-            ? amount.mul(returnRateA.mul(10**padding)).div(returnRateB).mul(div)
-            : amount.mul(returnRateA.mul(10**padding)).div(returnRateB).div(
-                div
-            );
+    function _mul(
+        uint256 x,
+        uint256 y,
+        uint256 decimals
+    ) private pure returns (uint256) {
+        uint256 factor = 10**decimals;
+        return x.mul(y).add(factor.div(2)).div(factor);
     }
 }

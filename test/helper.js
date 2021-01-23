@@ -8,6 +8,8 @@ module.exports.getAggregatedOraclesV2 = () => {
 
   if (network.name == "hardhat" || network.name == "mainnet") {
     oracleTokens = Object.values(network.config.addresses);
+  } else if (network.name == "rinkeby") {
+    oracleTokens = Object.values(network.config.addresses);
   } else {
     throw Error(`unsupported network ${network.name}`);
   }
@@ -20,6 +22,7 @@ module.exports.getAggregatedOraclesV2 = () => {
       continue;
     }
     if (
+      network.config.oracles[oracleTokens[i]] &&
       network.config.oracles[oracleTokens[i]][
         network.config.addresses.ethAddress
       ]
@@ -34,6 +37,7 @@ module.exports.getAggregatedOraclesV2 = () => {
     }
 
     if (
+      network.config.oracles[oracleTokens[i]] &&
       network.config.oracles[oracleTokens[i]][
         network.config.addresses.usdAddress
       ]

@@ -15,9 +15,9 @@ module.exports = async (hre) => {
 
   const { tokensA, tokensB, oracles } = getAggregatedOraclesV2();
 
-  await deploy("OracleAggregatorV2", {
+  await deploy("OracleAggregator", {
     from: deployer,
     args: [hre.network.config.addresses.wethAddress, tokensA, tokensB, oracles],
   });
 };
-module.exports.tags = ["OracleAggregatorV2"];
+module.exports.tags = ["OracleAggregator"];
