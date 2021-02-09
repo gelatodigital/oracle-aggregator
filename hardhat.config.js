@@ -20,6 +20,8 @@ const DEPLOYER_MAINNET = "0xAabB54394E8dd61Dd70897E9c80be8de7C64A895";
 const DEPLOYER_PK_MAINNET = process.env.DEPLOYER_PK_MAINNET;
 const DEPLOYER_RINKEBY = "0xAabB54394E8dd61Dd70897E9c80be8de7C64A895";
 const DEPLOYER_PK_RINKEBY = process.env.DEPLOYER_PK_RINKEBY;
+const DEPLOYER_ROPSTEN = "0x4B5BaD436CcA8df3bD39A095b84991fAc9A226F1";
+const DEPLOYER_PK_ROPSTEN = process.env.DEPLOYER_PK_ROPSTEN;
 
 const ETH_ADDRESS = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE";
 const USD_ADDRESS = "0x7354C81fbCb229187480c4f497F945C6A312d5C3";
@@ -292,6 +294,42 @@ const rinkebyAddressBook = {
   oracles: rinkebyOracles,
 };
 
+const ropstenAddresses = {
+  ethAddress: ETH_ADDRESS,
+  usdAddress: USD_ADDRESS,
+  daiAddress: "0xaD6D458402F60fD3Bd25163575031ACDce07538D",
+  usdcAddress: "0x07865c6E87B9F70255377e024ace6630C1Eaa37F",
+  wethAddress: "0xbCA556c912754Bc8E7D4Aad20Ad69a1B1444F42d",
+  wbtcAddress: "0xBde8bB00A7eF67007A96945B3a3621177B615C44",
+};
+
+let ropstenOracles = {};
+ropstenOracles[ropstenAddresses.usdAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x943285f1a29281e59514fF35Dc16E5a14E123a27",
+};
+ropstenOracles[ropstenAddresses.ethAddress] = {
+  "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
+    "0x183D656bF1995D6f5e4b0604F42D3a1B4f521BB9",
+};
+ropstenOracles[ropstenAddresses.daiAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x943285f1a29281e59514fF35Dc16E5a14E123a27",
+};
+ropstenOracles[ropstenAddresses.usdcAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x943285f1a29281e59514fF35Dc16E5a14E123a27",
+};
+ropstenOracles[ropstenAddresses.wbtcAddress] = {
+  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
+    "0x233B654599fEF0cCb853A35bBE64db47B1f3f7D6",
+};
+
+const ropstenAddressBook = {
+  addresses: ropstenAddresses,
+  oracles: ropstenOracles,
+};
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
@@ -308,6 +346,7 @@ module.exports = {
       default: 0,
       mainnet: DEPLOYER_MAINNET,
       rinkeby: DEPLOYER_RINKEBY,
+      ropsten: DEPLOYER_ROPSTEN,
     },
   },
   networks: {
@@ -337,6 +376,13 @@ module.exports = {
       url: `https://eth-rinkeby.alchemyapi.io/v2/${ALCHEMY_ID}`,
       gasPrice: parseInt(utils.parseUnits("2", "gwei")),
       ...rinkebyAddressBook,
+    },
+    ropsten: {
+      accounts: DEPLOYER_PK_ROPSTEN ? [DEPLOYER_PK_ROPSTEN] : [],
+      chainId: 3,
+      url: `https://eth-ropsten.alchemyapi.io/v2/${ALCHEMY_ID}`,
+      gasPrice: parseInt(utils.parseUnits("5", "gwei")),
+      ...ropstenAddressBook,
     },
   },
   solidity: {

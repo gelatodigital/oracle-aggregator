@@ -6,9 +6,12 @@ const USD_ADDRESS = network.config.addresses.usdAddress;
 module.exports.getAggregatedOracles = () => {
   let oracleTokens;
 
-  if (network.name == "hardhat" || network.name == "mainnet") {
-    oracleTokens = Object.values(network.config.addresses);
-  } else if (network.name == "rinkeby") {
+  if (
+    network.name == "hardhat" ||
+    network.name == "mainnet" ||
+    network.name == "rinkeby" ||
+    network.name == "ropsten"
+  ) {
     oracleTokens = Object.values(network.config.addresses);
   } else {
     throw Error(`unsupported network ${network.name}`);
