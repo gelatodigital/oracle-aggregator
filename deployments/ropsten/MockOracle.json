@@ -1,0 +1,158 @@
+{
+  "address": "0x233B654599fEF0cCb853A35bBE64db47B1f3f7D6",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "int256",
+          "name": "_answer",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_decimals",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int256",
+          "name": "_newAnswer",
+          "type": "int256"
+        }
+      ],
+      "name": "changeAnswer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_newDecimals",
+          "type": "uint256"
+        }
+      ],
+      "name": "changeDecimals",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "constantAnswer",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "constantDecimals",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestAnswer",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x24a8192a1f6a4c71ac558ea2a9ca2cf0d6c69f133bdea0bba741e9992fefa192",
+  "receipt": {
+    "to": null,
+    "from": "0x4B5BaD436CcA8df3bD39A095b84991fAc9A226F1",
+    "contractAddress": "0x899F86617B8D92A10aD8Fee92a6666e1dF84c037",
+    "transactionIndex": 1,
+    "gasUsed": "154888",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x0b659c9a1784ac7e044a85e12f66c43315d23ec1bc7800b5df20eb6be3e47daa",
+    "transactionHash": "0x24a8192a1f6a4c71ac558ea2a9ca2cf0d6c69f133bdea0bba741e9992fefa192",
+    "logs": [],
+    "blockNumber": 9630496,
+    "cumulativeGasUsed": "1454883",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [150000000000, 8],
+  "solcInputHash": "d8b8ad14011cc7df3c3af8129f629ed4",
+  "metadata": "{\"compiler\":{\"version\":\"0.6.10+commit.00c0fcaf\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"_answer\",\"type\":\"int256\"},{\"internalType\":\"uint256\",\"name\":\"_decimals\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"int256\",\"name\":\"_newAnswer\",\"type\":\"int256\"}],\"name\":\"changeAnswer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_newDecimals\",\"type\":\"uint256\"}],\"name\":\"changeDecimals\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"constantAnswer\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"constantDecimals\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"contracts/mocks/MockOracle.sol\":\"MockOracle\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/interfaces/IOracle.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity 0.6.10;\\n\\ninterface IOracle {\\n    function latestAnswer() external view returns (int256);\\n\\n    function decimals() external view returns (uint256);\\n}\\n\",\"keccak256\":\"0xa3ef36352573c120f4cae20247a7d0f037ee4255a43483a8dddfbb25c5449c8c\",\"license\":\"UNLICENSED\"},\"contracts/mocks/MockOracle.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.6.10;\\nimport {IOracle} from \\\"../interfaces/IOracle.sol\\\";\\n\\ncontract MockOracle is IOracle {\\n    uint256 public constantDecimals;\\n    int256 public constantAnswer;\\n\\n    constructor(int256 _answer, uint256 _decimals) public {\\n        constantAnswer = _answer;\\n        constantDecimals = _decimals;\\n    }\\n\\n    function changeAnswer(int256 _newAnswer) external {\\n        constantAnswer = _newAnswer;\\n    }\\n\\n    function changeDecimals(uint256 _newDecimals) external {\\n        constantDecimals = _newDecimals;\\n    }\\n\\n    function latestAnswer() external view override returns (int256) {\\n        return constantAnswer;\\n    }\\n\\n    function decimals() external view override returns (uint256) {\\n        return constantDecimals;\\n    }\\n}\\n\",\"keccak256\":\"0x852c002abbbaab2cd47709149b2004a315187949a1a13282ca82a52f07c082fb\",\"license\":\"UNLICENSED\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b5060405161016b38038061016b8339818101604052604081101561003357600080fd5b508051602090910151600191909155600055610117806100546000396000f3fe6080604052348015600f57600080fd5b5060043610605a5760003560e01c8063313ce56714605f57806350d25bcd14607757806395d7329014607d578063968a8f99146083578063afa5f45c146089578063ef6850271460a5575b600080fd5b606560bf565b60408051918252519081900360200190f35b606560c5565b606560cb565b606560d1565b60a360048036036020811015609d57600080fd5b503560d7565b005b60a36004803603602081101560b957600080fd5b503560dc565b60005490565b60015490565b60015481565b60005481565b600055565b60015556fea26469706673582212208856934d963a5a8de2ff2cb443701a122216779dcbf82d4aba3e12e29700870064736f6c634300060a0033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b5060043610605a5760003560e01c8063313ce56714605f57806350d25bcd14607757806395d7329014607d578063968a8f99146083578063afa5f45c146089578063ef6850271460a5575b600080fd5b606560bf565b60408051918252519081900360200190f35b606560c5565b606560cb565b606560d1565b60a360048036036020811015609d57600080fd5b503560d7565b005b60a36004803603602081101560b957600080fd5b503560dc565b60005490565b60015490565b60015481565b60005481565b600055565b60015556fea26469706673582212208856934d963a5a8de2ff2cb443701a122216779dcbf82d4aba3e12e29700870064736f6c634300060a0033",
+  "devdoc": {
+    "methods": {}
+  },
+  "userdoc": {
+    "methods": {}
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 2050,
+        "contract": "contracts/mocks/MockOracle.sol:MockOracle",
+        "label": "constantDecimals",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 2052,
+        "contract": "contracts/mocks/MockOracle.sol:MockOracle",
+        "label": "constantAnswer",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_int256"
+      }
+    ],
+    "types": {
+      "t_int256": {
+        "encoding": "inplace",
+        "label": "int256",
+        "numberOfBytes": "32"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

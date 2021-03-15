@@ -3,12 +3,20 @@ pragma solidity ^0.6.10;
 import {IOracle} from "../interfaces/IOracle.sol";
 
 contract MockOracle is IOracle {
-    uint256 public immutable constantDecimals;
-    int256 public immutable constantAnswer;
+    uint256 public constantDecimals;
+    int256 public constantAnswer;
 
     constructor(int256 _answer, uint256 _decimals) public {
         constantAnswer = _answer;
         constantDecimals = _decimals;
+    }
+
+    function changeAnswer(int256 _newAnswer) external {
+        constantAnswer = _newAnswer;
+    }
+
+    function changeDecimals(uint256 _newDecimals) external {
+        constantDecimals = _newDecimals;
     }
 
     function latestAnswer() external view override returns (int256) {
