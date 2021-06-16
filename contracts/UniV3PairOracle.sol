@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
+// solhint-disable-next-line compiler-version
 pragma solidity 0.7.6;
 
 import {
@@ -43,10 +44,11 @@ contract UniV3PairOracle is OwnableNoContext, IOracleInterface {
     }
 
     function latestAnswer() external view override returns (int256) {
-        (, int24 tick, , , , , ) = pool.slot0();
+        int24 avgTick =
+            OracleLibrary.consult(address(pool), observationSeconds);
         uint256 quoteAmount =
             OracleLibrary.getQuoteAtTick(
-                tick,
+                avgTick,
                 baseAmount *
                     uint128(10**IOracleInterface(pool.token0()).decimals()),
                 pool.token0(),

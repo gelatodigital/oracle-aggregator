@@ -1,9 +1,9 @@
 const { ethers, deployments, network } = require("hardhat");
 const { expect } = require("chai");
-const { computeChainlinkPrice, getAllTestPairs, symbols } = require("./helper");
+//const { computeChainlinkPrice, getAllTestPairs, symbols } = require("./helper");
 
 const ETH_ADDRESS = network.config.addresses.ethAddress;
-const USD_ADDRESS = network.config.addresses.usdAddress;
+//const USD_ADDRESS = network.config.addresses.usdAddress;
 
 describe("OracleAggregator V2 TEST", async function () {
   let oracleAggregator;
@@ -100,5 +100,4 @@ describe("OracleAggregator V2 TEST", async function () {
     console.log(returnAmount.toString());
     console.log(returnDecimals.toString());
   });
-
 });
