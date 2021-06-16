@@ -2,6 +2,13 @@ const { sleep } = require("@gelatonetwork/core");
 const { getAggregatedOracles } = require("../test/helper");
 
 module.exports = async (hre) => {
+  const disabled = false;
+  if (disabled) {
+    console.log(
+      "to deploy OracleAggregator set `disabled` to false in MockOracle.deploy.js"
+    );
+    return;
+  }
   if (hre.network.name === "mainnet") {
     console.log(
       "\n\n Deploying OracleAggregator to mainnet. Hit ctrl + c to abort"

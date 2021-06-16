@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.7.6;
+
+import {
+    IUniswapV3Pool
+} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {
+    OracleLibrary
+} from "@uniswap/v3-periphery/contracts/libraries/OracleLibrary.sol";
+
+import {TickMath} from "./vendor/TickMath.sol";
+import {OwnableNoContext} from "./vendor/OwnableNoContext.sol";
+
+interface IOracleInterface {
+    function latestAnswer() external view returns (int256);
+
+    function decimals() external view returns (uint256);
+}
+
+contract UniV3PairOracle is OwnableNoContext, IOracleInterface {
+    using TickMath for int24;
+
+    IUniswapV3Pool public immutable pool;
+    uint256 public constant CONSTANT_DECIMAL = 18;
+    uint32 public observationSeconds;
+    uint128 public baseAmount;
+
+    constructor(IUniswapV3Pool _pool) {
+        pool = _pool;
+        observationSeconds = 5 minutes;
+        baseAmount = 100;
+    }
+
+    function setObservationSeconds(uint32 _newObservationSeconds)
+        external
+        onlyOwner
+    {
+        observationSeconds = _newObservationSeconds;
+    }
+
+    function setBaseAmount(uint128 _newBaseAmount) external onlyOwner {
+        baseAmount = _newBaseAmount;
+    }
+
+    function latestAnswer() external view override returns (int256) {
+        (, int24 tick, , , , , ) = pool.slot0();
+        uint256 quoteAmount =
+            OracleLibrary.getQuoteAtTick(
+                tick,
+                baseAmount *
+                    uint128(10**IOracleInterface(pool.token0()).decimals()),
+                pool.token0(),
+                pool.token1()
+            );
+        quoteAmount = quoteAmount / baseAmount;
+        return int256(quoteAmount);
+    }
+
+    function decimals() external pure override returns (uint256) {
+        return CONSTANT_DECIMAL;
+    }
+}

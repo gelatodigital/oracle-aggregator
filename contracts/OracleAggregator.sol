@@ -57,6 +57,16 @@ contract OracleAggregator is Ownable {
         }
     }
 
+    function checkIfOracleIsWhitelisted(address _inToken, address _outToken)
+        public
+        view
+        returns (bool isWhitelisted)
+    {
+        isWhitelisted = tokenPairAddress[_inToken][_outToken] != address(0);
+        if (!isWhitelisted)
+            isWhitelisted = tokenPairAddress[_outToken][_inToken] != address(0);
+    }
+
     // solhint-disable function-max-lines
     // solhint-disable code-complexity
     /// @dev expected return amount of outToken from amountIn of inToken
