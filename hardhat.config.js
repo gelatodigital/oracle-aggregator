@@ -40,7 +40,6 @@ const mainnetAddresses = {
   compAddress: "0xc00e94Cb662C3520282E6f5717214004A7f26888",
   croAddress: "0xA0b73E1Ff0B80914AB6fe0444E65848C4C34450b",
   daiAddress: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-  dmgAddress: "0xEd91879919B71bB6905f23af0A68d231EcF87b14",
   enjAddress: "0x24D9aB51950F3d62E9144fdC2f3135DAA6Ce8D1B",
   kncAddress: "0xdd974D5C2e2928deA5F71b9825b8b646686BD200",
   linkAddress: "0x514910771AF9Ca656af840dff83E8264EcF986CA",
@@ -125,10 +124,6 @@ mainnetOracles[mainnetAddresses.daiAddress] = {
     "0x773616E4d11A78F511299002da57A0a94577F1f4",
   "0x7354C81fbCb229187480c4f497F945C6A312d5C3":
     "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
-};
-mainnetOracles[mainnetAddresses.dmgAddress] = {
-  "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
-    "0xD010e899f7ab723AC93f825cDC5Aa057669557c2",
 };
 mainnetOracles[mainnetAddresses.enjAddress] = {
   "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE":
@@ -355,7 +350,7 @@ module.exports = {
       // timeout: 150000,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_ID}`,
-        blockNumber: 11712566,
+        blockNumber: 12645718,
       },
       // Custom
       GelatoCore: "0x1d681d76ce96E4d70a88A00EBbcfc1E47808d0b8",
@@ -393,6 +388,13 @@ module.exports = {
           optimizer: { enabled: process.env.DEBUG ? false : true },
         },
       },
+      {
+        version: "0.7.6",
+        settings: {
+          optimizer: { enabled: process.env.DEBUG ? false : true },
+        },
+      },
+
       // {
       //   version: "0.7.4",
       //   settings: {
