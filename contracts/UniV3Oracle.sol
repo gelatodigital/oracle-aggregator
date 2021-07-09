@@ -26,7 +26,7 @@ contract UniV3Oracle is OwnableNoContext {
 
   function getExpectedReturnAmount(
     address[] calldata route,
-    IUniswapV3Pool[] calldata pools,
+    address[] calldata pools,
     uint128 amountIn
   ) public view returns (uint256 returnAmount, uint256 returnDecimals) {
     uint256 length = pools.length;
@@ -34,7 +34,7 @@ contract UniV3Oracle is OwnableNoContext {
     uint256 quoteAmount;
 
     for (uint256 x = 0; x < length; x++) {
-      IUniswapV3Pool pool = pools[x];
+      IUniswapV3Pool pool = IUniswapV3Pool(pools[x]);
       address inToken = route[x];
       address outToken = route[x + 1];
 
