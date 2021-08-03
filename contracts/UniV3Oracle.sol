@@ -25,9 +25,9 @@ contract UniV3Oracle is OwnableNoContext {
   }
 
   function getExpectedReturnAmount(
+    uint128 amountIn,
     address[] calldata route,
-    address[] calldata pools,
-    uint128 amountIn
+    address[] calldata pools
   ) public view returns (uint256 returnAmount, uint256 returnDecimals) {
     uint256 length = pools.length;
     uint128 varyingInput = amountIn;
